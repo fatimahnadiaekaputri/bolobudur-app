@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,6 +12,7 @@ import com.example.bolobudur.ui.screen.home.HomeScreen
 import com.example.bolobudur.ui.screen.home.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController) {
