@@ -12,8 +12,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SplashViewModel @Inject constructor() : ViewModel() {
 
-    private val _navigateToNext = MutableStateFlow(false)
-    val navigateToNext: StateFlow<Boolean> get() = _navigateToNext
+    private val _navigateToNext = MutableStateFlow("")
+    val navigateToNext: StateFlow<String> get() = _navigateToNext
 
     init {
         startSplash()
@@ -22,7 +22,15 @@ class SplashViewModel @Inject constructor() : ViewModel() {
     private fun startSplash() {
         viewModelScope.launch {
             delay(5000) // delay 5 detik
-            _navigateToNext.value = true
+            if (isUserLoggedIn()) {
+                _navigateToNext.value = "home"
+            } else {
+                _navigateToNext.value = "login"
+            }
         }
+    }
+
+    private fun isUserLoggedIn(): Boolean {
+        return false // sementara, nanti diganti cek login beneran
     }
 }

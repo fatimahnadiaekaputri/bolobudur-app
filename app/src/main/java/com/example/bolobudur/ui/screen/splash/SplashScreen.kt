@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.bolobudur.R
+import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
@@ -29,12 +30,32 @@ fun SplashScreen(
 
     // pindah ke home setelah 2 detik
     LaunchedEffect(navigate) {
-        if (navigate) {
-            navController.navigate("home") {
+        when (navigate) {
+            "home" -> navController.navigate("home") {
+                popUpTo("splash") { inclusive = true }
+            }
+            "login" -> navController.navigate("login") {
                 popUpTo("splash") { inclusive = true }
             }
         }
     }
+
+//    LaunchedEffect(Unit) {
+//        delay(2000) // 2 detik splash
+//
+//        val onboardingCompleted = false // default
+//
+//        if (onboardingCompleted) {
+//            navController.navigate("login") {
+//                popUpTo("splash") { inclusive = true }
+//            }
+//        } else {
+//            navController.navigate("onboarding") {
+//                popUpTo("splash") { inclusive = true }
+//            }
+//        }
+//    }
+
 
     Box(
         modifier = Modifier
