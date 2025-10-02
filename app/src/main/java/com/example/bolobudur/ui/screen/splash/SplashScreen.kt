@@ -29,8 +29,11 @@ fun SplashScreen(
 
     // pindah ke home setelah 2 detik
     LaunchedEffect(navigate) {
-        if (navigate) {
-            navController.navigate("home") {
+        when (navigate) {
+            "home" -> navController.navigate("home") {
+                popUpTo("splash") { inclusive = true }
+            }
+            "login" -> navController.navigate("login") {
                 popUpTo("splash") { inclusive = true }
             }
         }

@@ -6,6 +6,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.bolobudur.ui.screen.login.LoginScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 
@@ -26,6 +27,10 @@ fun NavGraph(navController: NavHostController) {
                 viewModel = splashViewModel,
                 navController = navController
             )
+        }
+
+        composable("login") {
+            LoginScreen(navController = navController)
         }
 
         // Home Screen (contoh, kalau nanti ada HomeViewModel)
