@@ -1,20 +1,28 @@
 package com.example.bolobudur.ui.navigation
 
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.bolobudur.ui.screen.onboarding.OnboardingScreen
 import com.example.bolobudur.ui.screen.login.LoginScreen
+import com.example.bolobudur.ui.screen.register.RegisterScreen
+import com.example.bolobudur.ui.screen.home.BorobudurpediaScreen
+import com.example.bolobudur.ui.screen.home.HomeScreen
+import com.example.bolobudur.ui.screen.home.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = "splash"
+        startDestination = "splash",
+        modifier = Modifier.systemBarsPadding()
     ) {
         // Splash Screen
         composable("splash") { backStackEntry ->
@@ -29,21 +37,32 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
+        composable("onboarding") {
+            OnboardingScreen(navController = navController)
+        }
+
         composable("login") {
             LoginScreen(navController = navController)
         }
 
-        // Home Screen (contoh, kalau nanti ada HomeViewModel)
-        composable("home") { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("home")
-            }
-            // Contoh kalau pakai HiltViewModel
-            // val homeViewModel: HomeViewModel = hiltViewModel(parentEntry)
-
-            // TODO: ganti dengan HomeScreen(viewModel = homeViewModel)
-            // sementara pake placeholder:
-            androidx.compose.material3.Text("Hello from Home!")
+        composable("register") {
+            RegisterScreen(navController = navController)
         }
+
+        // Home Screen
+        composable(Screen.Home.route) {
+            HomeScreen(navController = navController)
+        }
+
+        composable(Screen.Borobudurpedia.route) {
+            BorobudurpediaScreen(navController = navController)
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(navController = navController)
+        }
+
+
+
     }
 }
