@@ -1,8 +1,7 @@
 package com.example.bolobudur.ui.model
 
-data class FeatureData(
+data class FloorData (
     val id: Int,
     val title: String,
-    val description: String,
-    val imageRes: Int
+    val items: List<String>
 )

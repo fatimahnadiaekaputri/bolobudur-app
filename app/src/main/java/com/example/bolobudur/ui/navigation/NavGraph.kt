@@ -13,6 +13,8 @@ import com.example.bolobudur.ui.screen.home.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
+import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -45,6 +47,15 @@ fun NavGraph(navController: NavHostController) {
 
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)
+        }
+
+        composable("detail/{featureId}") { backStackEntry ->
+            val featureId = backStackEntry.arguments?.getString("featureId")?.toIntOrNull()
+
+            when (featureId) {
+                1 -> BolomapsScreen(navController = navController)
+                2 -> BolofindScreen(navController = navController)
+            }
         }
 
 
