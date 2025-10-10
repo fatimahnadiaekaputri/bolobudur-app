@@ -14,7 +14,7 @@ fun MapBox() {
     val viewportState = rememberMapViewportState {
         setCameraOptions {
             center(borobudur)
-            zoom(15.0)
+            zoom(17.5)
             pitch(0.0)
             bearing(0.0)
         }
