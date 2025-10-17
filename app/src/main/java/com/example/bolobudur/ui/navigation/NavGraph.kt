@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.bolobudur.ui.screen.onboarding.OnboardingScreen
 import com.example.bolobudur.ui.screen.login.LoginScreen
 import com.example.bolobudur.ui.screen.register.RegisterScreen
 import com.example.bolobudur.ui.screen.home.BorobudurpediaScreen
@@ -35,10 +34,6 @@ fun NavGraph(navController: NavHostController) {
                 viewModel = splashViewModel,
                 navController = navController
             )
-        }
-
-        composable("onboarding") {
-            OnboardingScreen(navController = navController)
         }
 
         composable("login") {
