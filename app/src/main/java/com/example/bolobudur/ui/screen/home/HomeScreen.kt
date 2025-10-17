@@ -60,7 +60,9 @@ fun HomeScreen(
             }
 
             items(uiState.features) { feature ->
-                FeatureCard(feature = feature,
+                FeatureCard(feature = feature, navController = navController, onCardClick = {
+                    navController.navigate("detail/${feature.id}")
+                },
                     modifier = Modifier.fillMaxWidth().aspectRatio(1.3f))
                 Spacer(Modifier.height(12.dp))
             }

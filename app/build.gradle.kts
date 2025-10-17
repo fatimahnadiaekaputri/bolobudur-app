@@ -72,6 +72,9 @@ dependencies {
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.1")
     implementation("com.google.accompanist:accompanist-pager:0.19.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.19.0")
+    implementation("com.mapbox.maps:android-ndk27:11.15.2") // mapbox
+    implementation("com.mapbox.maps:android-core-ndk27:11.15.2")
+    implementation("com.mapbox.extension:maps-compose-ndk27:11.15.2") // mapbox compose version
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

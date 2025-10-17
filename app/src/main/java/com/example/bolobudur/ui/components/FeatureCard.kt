@@ -2,6 +2,7 @@ package com.example.bolobudur.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,13 +22,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.bolobudur.ui.screen.home.FeatureData
+import androidx.navigation.NavController
+import com.example.bolobudur.ui.model.FeatureData
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowUpRight
 
 @Composable
-fun FeatureCard(feature: FeatureData, modifier: Modifier = Modifier) {
+fun FeatureCard(feature: FeatureData, navController: NavController, modifier: Modifier = Modifier, onCardClick: () -> Unit = {}) {
     Card(
+        onClick = onCardClick,
         shape = RoundedCornerShape(16.dp),
         modifier = modifier,
         elevation = CardDefaults.cardElevation(4.dp)
@@ -59,7 +62,7 @@ fun FeatureCard(feature: FeatureData, modifier: Modifier = Modifier) {
                 )
             }
             IconButton(
-                onClick = { /* navigate */ },
+                onClick = {navController.navigate("detail/${feature.id}")},
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(12.dp)

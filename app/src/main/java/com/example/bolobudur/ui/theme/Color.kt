@@ -23,3 +23,5 @@ val GrayDark = Color(0xFF424242)
 val SuccessGreen = Color(0xFF4CAF50)
 val ErrorRed = Color(0xFFF44336)
 val WarningOrange = Color(0xFFFF9800)
+
+val LightWhite = Color(0xFFFBFBFB)

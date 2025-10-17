@@ -2,6 +2,7 @@ package com.example.bolobudur.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import com.example.bolobudur.R
+import com.example.bolobudur.ui.model.FeatureData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +23,8 @@ class HomeViewModel @Inject constructor(): ViewModel(){
         _uiState.update {
             it.copy(
                 features = listOf(
-                    FeatureData("BoloMaps", "Jelajahi setiap sudut Borobudur...", R.drawable.bolomaps_feature),
-                    FeatureData("BoloFind", "Kenali arca dan relief secara otomatis...", R.drawable.bolofind_feature)
+                    FeatureData(1, "BoloMaps", "Jelajahi setiap sudut Borobudur...", R.drawable.bolomaps_feature),
+                    FeatureData(2, "BoloFind", "Kenali arca dan relief secara otomatis...", R.drawable.bolofind_feature)
                 )
             )
         }
@@ -38,10 +39,4 @@ data class HomeUiState(
     val userName: String = "Hanifah",
     val searchQuery: String = "",
     val features: List<FeatureData> = emptyList()
-)
-
-data class FeatureData(
-    val title: String,
-    val description: String,
-    val imageRes: Int
 )
