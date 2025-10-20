@@ -55,29 +55,29 @@ fun ProfileScreen(navController: NavController) {
                 email = "hanifahputriarani@mail.ugm.ac.id"
             )
 
-//            Spacer(modifier = Modifier.height(8.dp))
-//
-//            // Card menu
-//            Card(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                elevation = CardDefaults.cardElevation(4.dp)
-//            ) {
-//                Column {
-//                    ProfileMenuItem(
-//                        icon = Icons.Default.Person,
-//                        title = "Edit Profile",
-//                        onClick = { /* TODO */ }
-//                    )
-//                    ProfileMenuItem(
-//                        icon = Icons.Default.Lock,
-//                        title = "Change Password",
-//                        showDivider = false,
-//                        onClick = { /* TODO */ }
-//                    )
-//                }
-//            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Card menu
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column {
+                    ProfileMenuItem(
+                        icon = Icons.Default.Person,
+                        title = "Edit Profile",
+                        onClick = { /* TODO */ }
+                    )
+                    ProfileMenuItem(
+                        icon = Icons.Default.Lock,
+                        title = "Change Password",
+                        showDivider = false,
+                        onClick = { /* TODO */ }
+                    )
+                }
+            }
 
         }
 
