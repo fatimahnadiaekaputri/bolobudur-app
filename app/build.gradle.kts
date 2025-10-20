@@ -10,6 +10,10 @@ android {
     namespace = "com.example.bolobudur"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.example.bolobudur"
         minSdk = 24
@@ -24,7 +28,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app\"")
+        }
         release {
+            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -75,6 +83,11 @@ dependencies {
     implementation("com.mapbox.maps:android-ndk27:11.15.2") // mapbox
     implementation("com.mapbox.maps:android-core-ndk27:11.15.2")
     implementation("com.mapbox.extension:maps-compose-ndk27:11.15.2") // mapbox compose version
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
+    implementation("com.squareup.okhttp3:okhttp:5.2.1")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
