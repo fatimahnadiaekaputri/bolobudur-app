@@ -7,7 +7,9 @@ import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.SymbolPlacement
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
 
 fun Style.addLineAndLabelLayer(geoJsonString: String) {
     if (!styleSourceExists("line-source")) {
@@ -42,4 +44,26 @@ fun Style.addLineAndLabelLayer(geoJsonString: String) {
 //            }
 //        )
 //    }
+}
+
+fun Style.addPathLayer(geoJsonString: String) {
+    if (!styleSourceExists("path-source")) {
+        addSource(
+            geoJsonSource("path-source") {
+                data(geoJsonString)
+            }
+        )
+    } else {
+        getSourceAs<GeoJsonSource>("path-source")?.data(geoJsonString)
+    }
+
+    if (!styleLayerExists("path-layer")) {
+        addLayer(
+            lineLayer("path-layer", "path-source") {
+                lineColor("#1E90FF") // biru terang
+                lineWidth(5.0)
+                lineOpacity(0.9)
+            }
+        )
+    }
 }
