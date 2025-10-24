@@ -1,6 +1,6 @@
-package com.example.bolobudur.data.remote.api
+package com.example.bolobudur.data.remote
 
-import com.example.bolobudur.data.remote.model.ShortestPathResponse
+import com.example.bolobudur.data.model.ShortestPathResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.GET

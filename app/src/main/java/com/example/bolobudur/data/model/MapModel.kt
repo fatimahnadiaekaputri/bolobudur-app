@@ -1,4 +1,4 @@
-package com.example.bolobudur.data.remote.model
+package com.example.bolobudur.data.model
 
 import com.google.gson.annotations.SerializedName
 

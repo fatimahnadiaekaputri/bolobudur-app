@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.bolobudur.data.remote.model.PoiFeature
+import com.example.bolobudur.data.model.PoiFeature
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowRight

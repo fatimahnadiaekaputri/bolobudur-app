@@ -2,9 +2,9 @@ package com.example.bolobudur.ui.screen.bolomaps.maps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.bolobudur.data.remote.model.FloorData
-import com.example.bolobudur.data.remote.model.PoiFeature
-import com.example.bolobudur.data.remote.model.ShortestPathResponse
+import com.example.bolobudur.data.model.FloorData
+import com.example.bolobudur.data.model.PoiFeature
+import com.example.bolobudur.data.model.ShortestPathResponse
 import com.example.bolobudur.data.repository.MapRepository
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection

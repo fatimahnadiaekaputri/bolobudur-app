@@ -1,7 +1,7 @@
 package com.example.bolobudur.di
 
 import com.example.bolobudur.BuildConfig
-import com.example.bolobudur.data.remote.api.MapApiService
+import com.example.bolobudur.data.remote.MapApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

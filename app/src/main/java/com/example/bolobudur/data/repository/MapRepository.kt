@@ -1,15 +1,9 @@
 package com.example.bolobudur.data.repository
 
 import android.util.Log
-import com.example.bolobudur.data.remote.api.MapApiService
-import com.example.bolobudur.data.remote.model.ShortestPathResponse
-import com.mapbox.geojson.Feature
+import com.example.bolobudur.data.remote.MapApiService
+import com.example.bolobudur.data.model.ShortestPathResponse
 import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.LineString
-import com.mapbox.geojson.Point
-import okhttp3.ResponseBody
-import org.json.JSONObject
-import retrofit2.Response
 import javax.inject.Inject
 
 class MapRepository @Inject constructor(

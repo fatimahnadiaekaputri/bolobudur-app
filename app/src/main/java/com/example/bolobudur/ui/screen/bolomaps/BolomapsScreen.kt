@@ -2,6 +2,7 @@ package com.example.bolobudur.ui.screen.bolomaps
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -44,16 +45,18 @@ fun BolomapsScreen(navController: NavController, viewModel: MapViewModel = hiltV
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetContainerColor = Color.White,
         sheetContent = {
-            if (isPathVisible) {
-                BottomSheetPath(
-                    destinationLabel = selectedDestination?.label ?: "Tujuan tidak diketahui",
-                    totalDistance = pathInfo?.totalDistance ?: 0f,
-                    onCancel = {
-                        viewModel.resetPath()
-                    }
-                )
-            } else {
-                BottomSheet(viewModel = viewModel)
+            Box(modifier = Modifier.fillMaxWidth()) {
+                if (isPathVisible) {
+                    BottomSheetPath(
+                        destinationLabel = selectedDestination?.label ?: "Tujuan tidak diketahui",
+                        totalDistance = pathInfo?.totalDistance ?: 0f,
+                        onCancel = {
+                            viewModel.resetPath()
+                        }
+                    )
+                } else {
+                    BottomSheet(viewModel = viewModel)
+                }
             }
         }
     ) { padding ->

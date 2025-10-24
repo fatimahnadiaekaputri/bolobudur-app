@@ -21,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.bolobudur.data.remote.model.FloorData
 import com.example.bolobudur.ui.components.SearchBar
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.ui.utils.toScreenHeight
