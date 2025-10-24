@@ -1,4 +1,4 @@
-package com.example.bolobudur.ui.utils
+package com.example.bolobudur.utils
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable

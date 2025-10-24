@@ -1,5 +1,7 @@
 package com.example.bolobudur.ui.screen.bolofind
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.bolobudur.ui.components.TopBar
+import com.example.bolobudur.ui.screen.bluetooth.BluetoothScreen
 
 @Composable
 fun BolofindScreen(navController: NavController) {

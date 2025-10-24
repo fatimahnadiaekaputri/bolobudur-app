@@ -20,7 +20,7 @@ import com.example.bolobudur.ui.screen.bolomaps.components.BottomSheet
 import com.example.bolobudur.ui.screen.bolomaps.components.BottomSheetPath
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapBox
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
-import com.example.bolobudur.ui.utils.toScreenHeight
+import com.example.bolobudur.utils.toScreenHeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +45,7 @@ fun BolomapsScreen(navController: NavController, viewModel: MapViewModel = hiltV
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetContainerColor = Color.White,
         sheetContent = {
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp)) {
                 if (isPathVisible) {
                     BottomSheetPath(
                         destinationLabel = selectedDestination?.label ?: "Tujuan tidak diketahui",
