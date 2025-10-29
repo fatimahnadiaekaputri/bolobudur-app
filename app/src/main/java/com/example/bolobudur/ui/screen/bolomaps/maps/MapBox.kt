@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.components.Loader
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
+import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -14,6 +16,7 @@ import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
@@ -24,7 +27,8 @@ import com.mapbox.maps.plugin.animation.easeTo
 
 @Composable
 fun MapBox(
-    viewModel: MapViewModel = hiltViewModel()
+    viewModel: MapViewModel = hiltViewModel(),
+    navigationViewModel: NavigationViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val borobudur = Point.fromLngLat(110.2038, -7.6079)
@@ -40,9 +44,15 @@ fun MapBox(
     val path by viewModel.shortestPath.collectAsState()
     val isLoading by viewModel.loading.collectAsState()
     val isPathLoading by viewModel.isPathLoading.collectAsState()
+    val currentPos by navigationViewModel.currentPosition.collectAsState()
+
+    val isArrived by navigationViewModel.isArrived.collectAsState()
+
+    val fullPath by navigationViewModel.fullPathLine.collectAsState()
+    val isNavigating = fullPath != null
 
     LaunchedEffect(Unit) {
-       viewModel.loadMapData()
+        viewModel.loadMapData()
     }
 
     if (isLoading) {
@@ -52,7 +62,8 @@ fun MapBox(
             modifier = Modifier.fillMaxSize(),
             mapViewportState = viewportState,
         ) {
-            MapEffect(edges, poi, path) { mapView ->
+            // MAP LAYER HANDLING
+            MapEffect(edges, poi, path, isNavigating) { mapView ->
                 val mapboxMap = mapView.mapboxMap
                 mapboxMap.getStyle { style ->
 
@@ -96,6 +107,13 @@ fun MapBox(
                         return@getStyle
                     }
 
+                    if (isNavigating) {
+                        if (style.styleLayerExists("shortest-path-layer"))
+                            style.removeStyleLayer("shortest-path-layer")
+                        if (style.styleSourceExists("shortest-path-source"))
+                            style.removeStyleSource("shortest-path-source")
+                        return@getStyle
+                    }
 
                     if (!isPathLoading && path != null) {
                         val sourceId = "shortest-path-source"
@@ -136,14 +154,15 @@ fun MapBox(
                             val endPoint = allCoordinates.last()
 
                             val markerFeatures = listOf(
-                                com.mapbox.geojson.Feature.fromGeometry(startPoint),
-                                com.mapbox.geojson.Feature.fromGeometry(endPoint)
+                                Feature.fromGeometry(startPoint),
+                                Feature.fromGeometry(endPoint)
                             )
 
                             val markerCollection = FeatureCollection.fromFeatures(markerFeatures)
 
                             if (style.styleSourceExists(markerSourceId)) {
-                                style.getSourceAs<GeoJsonSource>(markerSourceId)?.data(markerCollection.toJson())
+                                style.getSourceAs<GeoJsonSource>(markerSourceId)
+                                    ?.data(markerCollection.toJson())
                             } else {
                                 style.addSource(
                                     geoJsonSource(markerSourceId) {
@@ -154,11 +173,11 @@ fun MapBox(
 
                             if (!style.styleLayerExists(markerLayerId)) {
                                 style.addLayer(
-                                    com.mapbox.maps.extension.style.layers.generated.circleLayer(
+                                    circleLayer(
                                         markerLayerId,
                                         markerSourceId
                                     ) {
-                                        circleColor("#FF0000") // merah
+                                        circleColor("#FF0000")
                                         circleRadius(6.0)
                                         circleStrokeWidth(2.0)
                                         circleStrokeColor("#FFFFFF")
@@ -181,12 +200,60 @@ fun MapBox(
                     }
 
                 }
+            }
+            // POSISI USER DAN KAMERA NAVIGASI
+            MapEffect(fullPath, currentPos, isArrived) { mapView ->
+                val mapboxMap = mapView.mapboxMap
+                mapboxMap.getStyle { style ->
 
+                    if (!isArrived) {
+                        // 🔹 Full path (biru)
+                        fullPath?.let { full ->
+                            val sourceId = "full-path-source"
+                            val layerId = "full-path-layer"
+                            if (style.styleSourceExists(sourceId)) {
+                                style.getSourceAs<GeoJsonSource>(sourceId)?.data(full.toJson())
+                            } else {
+                                style.addSource(geoJsonSource(sourceId) { data(full.toJson()) })
+                            }
+                            if (!style.styleLayerExists(layerId)) {
+                                style.addLayer(lineLayer(layerId, sourceId) {
+                                    lineColor("#1E90FF")
+                                    lineWidth(4.0)
+                                    lineOpacity(0.6)
+                                })
+                            }
+                        }
+                    } else {
+                        // 🔹 Hapus semua garis kalau sudah sampai
+                        if (style.styleLayerExists("full-path-layer")) style.removeStyleLayer("full-path-layer")
+                        if (style.styleSourceExists("full-path-source")) style.removeStyleSource("full-path-source")
+                        if (style.styleLayerExists("dynamic-line-layer")) style.removeStyleLayer("dynamic-line-layer")
+                        if (style.styleSourceExists("dynamic-line-source")) style.removeStyleSource("dynamic-line-source")
+                    }
+
+                    // 🔹 Posisi user
+                    currentPos?.let { point ->
+                        val id = "current-pos"
+                        val layerId = "current-pos-layer"
+                        if (style.styleSourceExists(id)) {
+                            style.getSourceAs<GeoJsonSource>(id)?.data(Feature.fromGeometry(point).toJson())
+                        } else {
+                            style.addSource(geoJsonSource(id) { data(Feature.fromGeometry(point).toJson()) })
+                            style.addLayer(circleLayer(layerId, id) {
+                                circleColor("#00FF00")
+                                circleRadius(6.0)
+                                circleStrokeWidth(2.0)
+                                circleStrokeColor("#FFFFFF")
+                            })
+                        }
+                    }
+                }
             }
 
         }
 
-        if(isPathLoading) {
+        if (isPathLoading) {
             Loader()
         }
     }

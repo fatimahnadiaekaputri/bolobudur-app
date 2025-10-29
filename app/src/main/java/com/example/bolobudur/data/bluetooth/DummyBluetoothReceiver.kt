@@ -15,7 +15,7 @@ class DummyBluetoothReceiver {
     private var running = false
     private var jobScope: CoroutineScope? = null
 
-    suspend fun connect(): Boolean {
+    fun connect(): Boolean {
         running = true
         jobScope = CoroutineScope(Dispatchers.Default)
         jobScope?.launch {
@@ -26,7 +26,7 @@ class DummyBluetoothReceiver {
                         "latitude" to (-7.7956 + Random.nextDouble(-0.0005, 0.0005)),
                         "longitude" to (110.3695 + Random.nextDouble(-0.0005, 0.0005)),
                         "kecepatan" to Random.nextDouble(0.0, 3.0),
-                        "imu" to "[${Random.nextFloat()}, ${Random.nextFloat()}, ${Random.nextFloat()}]"
+                        "imu" to Random.nextFloat()
                     )
                 )
                 _dataFlow.emit(json.toString())

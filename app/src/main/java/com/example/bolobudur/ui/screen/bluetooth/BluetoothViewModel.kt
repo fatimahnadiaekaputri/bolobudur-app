@@ -1,22 +1,28 @@
 package com.example.bolobudur.ui.screen.bluetooth
 
 import android.bluetooth.BluetoothDevice
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.data.bluetooth.BluetoothReceiver
 import com.example.bolobudur.data.bluetooth.DummyBluetoothReceiver
+import com.example.bolobudur.data.model.BluetoothModel
 import com.example.bolobudur.data.model.DeviceItem
+import com.example.bolobudur.data.repository.LocationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class BluetoothViewModel @Inject constructor(
-    private val receiver: BluetoothReceiver
+    private val receiver: BluetoothReceiver,
+    private val locationRepository: LocationRepository
 ) : ViewModel() {
 
     // states for UI
@@ -29,7 +35,7 @@ class BluetoothViewModel @Inject constructor(
     private val _connectedDevice = MutableStateFlow<DeviceItem?>(null)
     val connectedDevice = _connectedDevice.asStateFlow()
 
-    private val _data = MutableStateFlow<Map<String, Any>?>(null)
+    private val _data = MutableStateFlow<BluetoothModel?>(null)
     val data = _data.asStateFlow()
 
     private val _error = MutableStateFlow<String?>(null)
@@ -37,6 +43,13 @@ class BluetoothViewModel @Inject constructor(
 
     // dummy simulator instance (not injected)
     private val dummy = DummyBluetoothReceiver()
+
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning = _isScanning.asStateFlow()
+
+    private val _rawData = MutableStateFlow<String?>(null)
+    val rawData: StateFlow<String?> = _rawData
+
 
     fun checkBluetoothEnabled() {
         _isBluetoothEnabled.value = receiver.isBluetoothEnabled()
@@ -46,22 +59,22 @@ class BluetoothViewModel @Inject constructor(
      * populate devices (paired devices). If none, show dummy list so UI can test.
      * Note: permission must be requested from UI before calling this (we still handle safely).
      */
+    @RequiresApi(Build.VERSION_CODES.S)
     fun loadPairedDevices() {
         viewModelScope.launch {
+            _isScanning.value = true
             try {
-                val list = try { receiver.getPairedDevices() } catch (_: SecurityException) { emptyList<DeviceItem>() }
-
-                // daftar dummy statis yang selalu muncul di list
+                val list = try { receiver.getAllDevices() } catch (_: SecurityException) { emptyList() }
                 val staticDummy = listOf(
                     DeviceItem("ESP32-DUMMY-1", "DUMMY_ADDR_1", isDummy = true),
                     DeviceItem("ESP32-DUMMY-2", "DUMMY_ADDR_2", isDummy = true)
                 )
-
-                // merge real + dummy
                 _devices.value = list + staticDummy
             } catch (e: Exception) {
                 e.printStackTrace()
                 _error.value = e.message
+            } finally {
+                _isScanning.value = false
             }
         }
     }
@@ -105,7 +118,7 @@ class BluetoothViewModel @Inject constructor(
                     viewModelScope.launch {
                         while (_connectedDevice.value != null) {
                             val raw = receiver.readData()
-                            if (!raw.isNullOrEmpty()) parseAndPost(raw)
+                            if (!raw.isNullOrEmpty()) _rawData.value = raw
                         }
                     }
                 } else {
@@ -124,12 +137,20 @@ class BluetoothViewModel @Inject constructor(
     private fun parseAndPost(raw: String) {
         try {
             val json = JSONObject(raw)
-            _data.value = mapOf(
-                "id" to json.optString("id", ""),
-                "latitude" to json.optDouble("latitude", 0.0),
-                "longitude" to json.optDouble("longitude", 0.0),
-                "kecepatan" to json.optDouble("kecepatan", 0.0),
-                "imu" to json.optString("imu", "")
+            val model = BluetoothModel(
+                id = json.optString("id", ""),
+                latitude = json.optDouble("latitude", 0.0),
+                longitude = json.optDouble("longitude", 0.0),
+                speed = json.optDouble("kecepatan", 0.0).toFloat(),
+                imu = json.optDouble("imu", 0.0).toFloat(),
+                timestamp = Date()
+            )
+            _data.value = model
+
+            locationRepository.updateFromBluetooth(
+                model.latitude,
+                model.longitude,
+                model.imu
             )
         } catch (e: Exception) {
             e.printStackTrace()

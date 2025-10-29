@@ -16,43 +16,57 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.bolobudur.data.model.DeviceItem
+import com.example.bolobudur.ui.components.Loader
 
 @Composable
 fun DeviceSelectionDialog(
     devices: List<DeviceItem>,
     onDismiss: () -> Unit,
+    isLoading: Boolean = false,
     onDeviceSelected: (DeviceItem) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Pilih Perangkat Bluetooth") },
         text = {
-            if (devices.isEmpty()) {
-                Text("Tidak ada perangkat terdeteksi. Pastikan Bluetooth aktif.")
-            } else {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    itemsIndexed(devices) { index, d ->
-                        val interactionSource = remember { MutableInteractionSource() }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = LocalIndication.current
-                                ) { onDeviceSelected(d) },
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = d.name ?: "Unknown")
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = d.address, style = MaterialTheme.typography.bodySmall)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 100.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    isLoading -> {
+                        Loader() // 🔹 pakai Loader dari component
+                    }
+                    devices.isEmpty() -> {
+                        Text("Tidak ada perangkat terdeteksi. Pastikan Bluetooth aktif.")
+                    }
+                    else -> {
+                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                            itemsIndexed(devices) { index, d ->
+                                val interactionSource = remember { MutableInteractionSource() }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                        .clickable(
+                                            interactionSource = interactionSource,
+                                            indication = LocalIndication.current
+                                        ) { onDeviceSelected(d) },
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(text = d.name ?: "Unknown")
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(text = d.address, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                                if (index < devices.size - 1) Spacer(modifier = Modifier.height(4.dp))
                             }
                         }
-                        if (index < devices.size - 1) Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
-
             }
         },
         confirmButton = {

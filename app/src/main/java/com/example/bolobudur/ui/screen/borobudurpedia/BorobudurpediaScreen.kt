@@ -35,7 +35,7 @@ fun BorobudurpediaScreen(navController: NavController) {
         ) {
             Text("Selamat datang di Borobudurpedia")
             Spacer(modifier = Modifier.height(16.dp))
-            BluetoothScreen()
+//            BluetoothScreen()
         }
     }
 }

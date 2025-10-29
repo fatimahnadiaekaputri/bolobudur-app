@@ -22,6 +22,7 @@ import com.example.bolobudur.utils.toScreenHeight
 fun BottomSheetPath(
     destinationLabel: String,
     totalDistance: Any,
+    onStartNavigation: () -> Unit,
     onCancel: () -> Unit
 ) {
     val formattedDistance = String.format("%.0f m", totalDistance)
@@ -39,7 +40,7 @@ fun BottomSheetPath(
         Spacer(modifier = Modifier.height(8.dp))
         Text(formattedDistance, fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* Mulai menjelajah */ }) {
+        Button(onClick = { onStartNavigation() }) {
             Text("Mulai menjelajah")
         }
         Spacer(modifier = Modifier.height(8.dp))

@@ -3,12 +3,9 @@ package com.example.bolobudur.ui.screen.bluetooth
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +26,8 @@ fun BluetoothScreen(viewModel: BluetoothViewModel = hiltViewModel()) {
     val devices by viewModel.devices.collectAsState()
     val connectedDevice by viewModel.connectedDevice.collectAsState()
     val data by viewModel.data.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val isScanning by viewModel.isScanning.collectAsState()
+    val rawData by viewModel.rawData.collectAsState()
 
     var showDialogOpenBluetooth by remember { mutableStateOf(false) }
     var showDevicePopup by remember { mutableStateOf(false) }
@@ -88,22 +86,27 @@ fun BluetoothScreen(viewModel: BluetoothViewModel = hiltViewModel()) {
                 }
 
                 Spacer(Modifier.height(24.dp))
-                Text("Data Bluetooth (parsed):")
+                Text("Data Bluetooth (raw):")
                 Spacer(Modifier.height(8.dp))
-                if (data == null) {
+                if (rawData.isNullOrEmpty()) {
                     Text("Menunggu data...")
                 } else {
-                    Text("ID: ${data?.get("id")}")
-                    Text("Latitude: ${data?.get("latitude")}")
-                    Text("Longitude: ${data?.get("longitude")}")
-                    Text("Kecepatan: ${data?.get("kecepatan")}")
-                    Text("IMU: ${data?.get("imu")}")
+                    Text(rawData ?: "")
+                    Log.d("BluetoothRawData", rawData ?: "")
                 }
+//                Text("Data Bluetooth (parsed):")
+//                Spacer(Modifier.height(8.dp))
+//                if (data == null) {
+//                    Text("Menunggu data...")
+//                } else {
+//                    Text("ID: ${data!!.id}")
+//                    Text("Latitude: ${data!!.latitude}")
+//                    Text("Longitude: ${data!!.longitude}")
+//                    Text("Kecepatan: ${data!!.speed}")
+//                    Text("IMU: ${data!!.imu}")
+//                    Text("Timestamp: ${data!!.timestamp}")
+//                }
 
-                error?.let {
-                    Spacer(Modifier.height(12.dp))
-                    Text("Error: $it", color = MaterialTheme.colorScheme.error)
-                }
             }
         }
     }
@@ -112,6 +115,7 @@ fun BluetoothScreen(viewModel: BluetoothViewModel = hiltViewModel()) {
         DeviceSelectionDialog(
             devices = devices,
             onDismiss = { showDevicePopup = false },
+            isLoading = isScanning,
             onDeviceSelected = { device ->
                 viewModel.connectToDevice(device)
                 showDevicePopup = false
