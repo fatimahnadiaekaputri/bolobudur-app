@@ -1,4 +1,4 @@
-package com.example.bolobudur.ui.components
+package com.example.bolobudur.ui.screen.profile.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*

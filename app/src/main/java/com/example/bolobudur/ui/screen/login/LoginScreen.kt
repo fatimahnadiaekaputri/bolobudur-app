@@ -12,14 +12,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.R // Assuming your Borobudur image is in drawable/borobudur.png
+import com.example.bolobudur.ui.auth.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -32,9 +34,28 @@ fun PreviewLoginScreen() {
 }
 
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val scope = rememberCoroutineScope()
+
+    // UI State dari ViewModel
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isSuccess by viewModel.isSuccess.collectAsState()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    // Navigasi otomatis saat login sukses
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -47,18 +68,17 @@ fun LoginScreen(navController: NavController) {
             painter = painterResource(id = R.drawable.borobudur_bg),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.4f
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom
         ) {
             // Logo dan tagline
             Column(
-                modifier = Modifier
-                    .padding(24.dp)
+                modifier = Modifier.padding(24.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.bolobudur_logo),
@@ -95,7 +115,8 @@ fun LoginScreen(navController: NavController) {
                         onValueChange = { email = it },
                         label = { Text("Email*") },
                         placeholder = { Text("Masukkan alamat email Anda") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -106,18 +127,19 @@ fun LoginScreen(navController: NavController) {
                         label = { Text("Password*") },
                         placeholder = { Text("Masukkan password Anda") },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Button(
                         onClick = {
-                            // TODO: logika login
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
+                            scope.launch {
+                                viewModel.login(email, password)
                             }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
@@ -126,7 +148,26 @@ fun LoginScreen(navController: NavController) {
                             containerColor = Color(0xFF346CD3) // biru solid
                         )
                     ) {
-                        Text("Masuk", fontSize = 16.sp, color = Color.White)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text("Masuk", fontSize = 16.sp, color = Color.White)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Pesan error kalau gagal
+                    if (!errorMessage.isNullOrEmpty()) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red,
+                            fontSize = 14.sp
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

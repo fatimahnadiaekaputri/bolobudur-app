@@ -29,10 +29,10 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app\"")
+            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app/\"")
         }
         release {
-            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app\"")
+            buildConfigField("String", "BASE_URL", "\"https://bolobudur-backend.vercel.app/\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -78,6 +78,7 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.navigation:navigation-compose:2.7.3")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("br.com.devsrsouza.compose.icons:feather:1.1.1")
     implementation("com.google.accompanist:accompanist-pager:0.19.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.19.0")

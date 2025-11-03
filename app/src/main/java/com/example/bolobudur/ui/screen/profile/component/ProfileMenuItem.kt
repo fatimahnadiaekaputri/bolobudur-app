@@ -1,12 +1,16 @@
-package com.example.bolobudur.ui.components
+package com.example.bolobudur.ui.screen.profile.component
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,10 +26,13 @@ fun ProfileMenuItem(
 ) {
     Column {
         Row(
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onClick() }
+                .clickable(
+                    indication = LocalIndication.current, // tambahkan ini!
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onClick() }
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Icon(imageVector = icon, contentDescription = title, tint = textColor)
