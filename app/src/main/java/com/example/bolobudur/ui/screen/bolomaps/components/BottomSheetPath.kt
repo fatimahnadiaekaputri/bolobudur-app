@@ -15,13 +15,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.bolobudur.ui.utils.toScreenHeight
+import com.example.bolobudur.utils.toScreenHeight
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun BottomSheetPath(
     destinationLabel: String,
     totalDistance: Any,
+    onStartNavigation: () -> Unit,
     onCancel: () -> Unit
 ) {
     val formattedDistance = String.format("%.0f m", totalDistance)
@@ -39,7 +40,7 @@ fun BottomSheetPath(
         Spacer(modifier = Modifier.height(8.dp))
         Text(formattedDistance, fontSize = 32.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { /* Mulai menjelajah */ }) {
+        Button(onClick = { onStartNavigation() }) {
             Text("Mulai menjelajah")
         }
         Spacer(modifier = Modifier.height(8.dp))

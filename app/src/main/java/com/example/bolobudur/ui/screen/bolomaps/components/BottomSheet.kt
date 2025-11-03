@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.components.SearchBar
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
-import com.example.bolobudur.ui.utils.toScreenHeight
+import com.example.bolobudur.utils.toScreenHeight
 
 @Composable
 fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
