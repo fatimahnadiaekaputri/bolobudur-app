@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.bolobudur.data.model.DeviceItem
 import com.example.bolobudur.utils.BluetoothPermissionHandler
 import com.example.bolobudur.utils.OpenBluetoothSettingsDialog
@@ -20,106 +21,79 @@ import com.example.bolobudur.utils.OpenBluetoothSettingsDialog
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun BluetoothScreen(viewModel: BluetoothViewModel = hiltViewModel()) {
-    val context = LocalContext.current
+fun BluetoothScreen(
+    navController: NavController,
+    viewModel: BluetoothViewModel = hiltViewModel()
+) {
+    val ctx = LocalContext.current
+
     val isEnabled by viewModel.isBluetoothEnabled.collectAsState()
-    val devices by viewModel.devices.collectAsState()
-    val connectedDevice by viewModel.connectedDevice.collectAsState()
-    val data by viewModel.data.collectAsState()
+    val pairedDevices by viewModel.pairedDevices.collectAsState()
+    val scannedDevices by viewModel.scannedDevices.collectAsState()
     val isScanning by viewModel.isScanning.collectAsState()
-    val rawData by viewModel.rawData.collectAsState()
 
-    var showDialogOpenBluetooth by remember { mutableStateOf(false) }
-    var showDevicePopup by remember { mutableStateOf(false) }
+    val lat by viewModel.locationRepository.latitude.collectAsState()
+    val lon by viewModel.locationRepository.longitude.collectAsState()
+    val imu by viewModel.locationRepository.imu.collectAsState()
 
-    // ask permissions first; when granted call check + load devices
+    var showChooseDevice by remember { mutableStateOf(false) }
+
     BluetoothPermissionHandler {
         viewModel.checkBluetoothEnabled()
-        if (!viewModel.isBluetoothEnabled.value) {
-            showDialogOpenBluetooth = true
-        } else {
-            viewModel.loadPairedDevices()
-        }
+        if (isEnabled) viewModel.loadDevices()
     }
 
-    if (showDialogOpenBluetooth) {
-        OpenBluetoothSettingsDialog {
-            showDialogOpenBluetooth = false
-            viewModel.checkBluetoothEnabled()
-            if (viewModel.isBluetoothEnabled.value) viewModel.loadPairedDevices()
-        }
-    }
-
-    Scaffold(topBar = { TopAppBar(title = { Text("Bluetooth Receiver") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Bluetooth") }) }) { pad ->
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(pad)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (!isEnabled) {
-                Text("Bluetooth belum aktif")
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                }) {
-                    Text("Buka Pengaturan Bluetooth")
-                }
-            } else {
-                Spacer(Modifier.height(8.dp))
-                if (connectedDevice == null) {
-                    Text("Belum tersambung ke perangkat")
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = {
-                        viewModel.loadPairedDevices()
-                        showDevicePopup = true
-                    }) {
-                        Text("Scan / Pilih Perangkat")
-                    }
-                } else {
-                    Text("Tersambung ke: ${connectedDevice?.name ?: "-"}")
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = { viewModel.disconnect() }) {
-                        Text("Disconnect")
-                    }
-                }
-
-                Spacer(Modifier.height(24.dp))
-                Text("Data Bluetooth (raw):")
-                Spacer(Modifier.height(8.dp))
-                if (rawData.isNullOrEmpty()) {
-                    Text("Menunggu data...")
-                } else {
-                    Text(rawData ?: "")
-                    Log.d("BluetoothRawData", rawData ?: "")
-                }
-//                Text("Data Bluetooth (parsed):")
-//                Spacer(Modifier.height(8.dp))
-//                if (data == null) {
-//                    Text("Menunggu data...")
-//                } else {
-//                    Text("ID: ${data!!.id}")
-//                    Text("Latitude: ${data!!.latitude}")
-//                    Text("Longitude: ${data!!.longitude}")
-//                    Text("Kecepatan: ${data!!.speed}")
-//                    Text("IMU: ${data!!.imu}")
-//                    Text("Timestamp: ${data!!.timestamp}")
-//                }
-
+                Text("Bluetooth off")
+                Button({
+                    ctx.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+                }) { Text("Buka Bluetooth") }
+                return@Column
             }
+
+            Button(
+                onClick = {
+                    viewModel.loadDevices()
+                    showChooseDevice = true
+                }
+            ) { Text("Pilih Device") }
+
+            Spacer(Modifier.height(18.dp))
+            Button(
+                onClick = { viewModel.stopService(ctx) }
+            ) { Text("Stop Service") }
+
+            Spacer(Modifier.height(20.dp))
+            Text("Latitude:  $lat")
+            Text("Longitude: $lon")
+            Text("IMU: $imu°")
         }
     }
 
-    if (showDevicePopup) {
+    // ---- Device Selection Dialog ----
+    if (showChooseDevice) {
         DeviceSelectionDialog(
-            devices = devices,
-            onDismiss = { showDevicePopup = false },
-            isLoading = isScanning,
+            pairedDevices = pairedDevices,
+            scannedDevices = scannedDevices,
+            isScanning = isScanning,
+            onDismiss = { showChooseDevice = false },
             onDeviceSelected = { device ->
-                viewModel.connectToDevice(device)
-                showDevicePopup = false
+                viewModel.startService(ctx, device.address, device.isDummy)
+                showChooseDevice = false
+
+                navController.navigate("home") {
+                    popUpTo("bluetooth") { inclusive = true }
+                }
             }
         )
     }
 }
+

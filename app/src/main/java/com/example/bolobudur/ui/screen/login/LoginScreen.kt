@@ -114,7 +114,7 @@ fun LoginScreen(navController: NavController) {
                     Button(
                         onClick = {
                             // TODO: logika login
-                            navController.navigate("home") {
+                            navController.navigate("bluetooth") {
                                 popUpTo("login") { inclusive = true }
                             }
                         },

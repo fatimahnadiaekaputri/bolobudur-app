@@ -3,19 +3,29 @@ package com.example.bolobudur.ui.screen.bolofind
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bolobudur.ui.components.TopBar
 import com.example.bolobudur.ui.screen.bluetooth.BluetoothScreen
+import com.example.bolobudur.ui.viewmodel.LocationViewModel
 
 @Composable
-fun BolofindScreen(navController: NavController) {
+fun BolofindScreen(
+    navController: NavController
+) {
     Scaffold(
         topBar = { TopBar(title = "BoloFind", navController = navController) }
     ) { padding ->
@@ -23,7 +33,7 @@ fun BolofindScreen(navController: NavController) {
             modifier = Modifier.padding(padding).fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text("Selamat datang di Bolofind")
+                Text("Selamat datang di BoloFind")
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.bolobudur.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -15,9 +17,11 @@ import com.example.bolobudur.ui.screen.home.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.bolobudur.ui.screen.bluetooth.BluetoothScreen
 import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
@@ -46,6 +50,10 @@ fun NavGraph(navController: NavHostController) {
             RegisterScreen(navController = navController)
         }
 
+        composable ( "bluetooth") {
+            BluetoothScreen(navController = navController)
+        }
+
         // Home Screen
         composable(Screen.Home.route) {
             HomeScreen(navController = navController)
@@ -54,6 +62,7 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Borobudurpedia.route) {
             BorobudurpediaScreen(navController = navController)
         }
+
 
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)
