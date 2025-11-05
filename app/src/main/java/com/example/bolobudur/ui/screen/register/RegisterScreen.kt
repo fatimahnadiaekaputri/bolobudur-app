@@ -13,41 +13,55 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.R
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewRegisterScreen() {
-    com.example.bolobudur.ui.theme.BolobudurTheme {
-        val fakeNavController = rememberNavController()
-        RegisterScreen(navController = fakeNavController)
-    }
-}
+import com.example.bolobudur.ui.auth.AuthViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(
+    navController: NavController,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val scope = rememberCoroutineScope()
+
+    // State dari ViewModel
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val isSuccess by viewModel.isSuccess.collectAsState()
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(
-            Brush.verticalGradient(
-            colors = listOf(Color(0xFF071228), Color(0xFF346CD3))
-        )),
+    // Navigasi otomatis ke login saat register berhasil
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            navController.navigate("login") {
+                popUpTo("register") { inclusive = true }
+            }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF071228), Color(0xFF346CD3))
+                )
+            ),
     ) {
         // Background image
         Image(
             painter = painterResource(id = R.drawable.borobudur_bg),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.4f
         )
 
         Column(
@@ -91,7 +105,8 @@ fun RegisterScreen(navController: NavController) {
                         onValueChange = { name = it },
                         label = { Text("Nama Lengkap*") },
                         placeholder = { Text("Masukkan nama lengkap Anda") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -101,7 +116,8 @@ fun RegisterScreen(navController: NavController) {
                         onValueChange = { email = it },
                         label = { Text("Email*") },
                         placeholder = { Text("Masukkan alamat email Anda") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -112,27 +128,47 @@ fun RegisterScreen(navController: NavController) {
                         label = { Text("Password*") },
                         placeholder = { Text("Masukkan password Anda") },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Button(
                         onClick = {
-                            // TODO: logika simpan user baru
-                            navController.navigate("login") {
-                                popUpTo("register") { inclusive = true }
+                            scope.launch {
+                                viewModel.register(name, email, password)
                             }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF346CD3) // biru solid
+                            containerColor = Color(0xFF346CD3)
                         )
                     ) {
-                        Text("Daftar", fontSize = 16.sp, color = Color.White)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text("Daftar", fontSize = 16.sp, color = Color.White)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Pesan error kalau gagal
+                    if (!errorMessage.isNullOrEmpty()) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red,
+                            fontSize = 14.sp
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

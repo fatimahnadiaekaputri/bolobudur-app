@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,14 +18,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bolobudur.R
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    viewModel: SplashViewModel,
-    navController: NavController
+    viewModel: SplashViewModel = hiltViewModel(),
+    navController: NavController,
+
 ) {
     val navigate by viewModel.navigateToNext.collectAsState()
 

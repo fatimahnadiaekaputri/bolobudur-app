@@ -1,7 +1,6 @@
 package com.example.bolobudur.ui.screen.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,18 +14,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import com.example.bolobudur.ui.components.BottomNavBar
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.bolobudur.ui.components.ProfileHeader
-import com.example.bolobudur.ui.components.ProfileMenuItem
-import com.example.bolobudur.ui.navigation.Screen
+import com.example.bolobudur.ui.components.BottomNavBar
+import com.example.bolobudur.ui.screen.profile.component.ProfileHeader
+import com.example.bolobudur.ui.screen.profile.component.ProfileMenuItem
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -78,7 +74,26 @@ fun ProfileScreen(navController: NavController) {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
 
+            //logout
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                ProfileMenuItem(
+                    icon = Icons.Default.Lock,
+                    title = "Logout",
+                    showDivider = false,
+                    onClick = {
+                        navController.navigate("login") {
+                            popUpTo("profile") { inclusive = true }
+                        }
+                    }
+                )
+            }
         }
 
 //        Box(
