@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.identity.jvm)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.text)
     kapt("com.google.dagger:hilt-compiler:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.navigation:navigation-compose:2.7.3")

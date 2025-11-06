@@ -17,7 +17,6 @@ import com.example.bolobudur.ui.screen.home.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.bolobudur.ui.screen.bluetooth.BluetoothScreen
 import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 
@@ -48,10 +47,6 @@ fun NavGraph(navController: NavHostController) {
 
         composable("register") {
             RegisterScreen(navController = navController)
-        }
-
-        composable ( "bluetooth") {
-            BluetoothScreen(navController = navController)
         }
 
         // Home Screen

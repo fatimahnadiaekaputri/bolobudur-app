@@ -79,6 +79,7 @@ class BluetoothService : Service() {
         return START_STICKY
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("ForegroundServiceType")
     private fun startDummyStream() {
         val dummyPath = listOf(

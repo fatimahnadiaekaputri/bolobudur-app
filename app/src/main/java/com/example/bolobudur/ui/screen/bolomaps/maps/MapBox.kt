@@ -43,7 +43,7 @@ fun MapBox(
     val edges by viewModel.edges.collectAsState()
     val poi by viewModel.poi.collectAsState()
     val path by viewModel.shortestPath.collectAsState()
-    val isLoading by viewModel.loading.collectAsState()
+    val isLoading by viewModel.mapLoading.collectAsState()
     val isPathLoading by viewModel.isPathLoading.collectAsState()
     val currentPos by navigationViewModel.currentPosition.collectAsState()
 

@@ -44,5 +44,12 @@ class MapRepository @Inject constructor(
         }
     }
 
+    suspend fun searchPoi(keyword: String): FeatureCollection? {
+        val response = api.searchPoi(keyword)
+        return if (response.isSuccessful && response.body() != null) {
+            FeatureCollection.fromJson(response.body()!!.string())
+        } else null
+    }
+
 
 }

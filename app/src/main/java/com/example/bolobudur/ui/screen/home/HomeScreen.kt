@@ -84,10 +84,10 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
                 GreetingSection(userName = uiState.userName)
                 Spacer(Modifier.height(8.dp))
-                SearchBar(
-                    value = uiState.searchQuery,
-                    onValueChange = homeViewModel::onSearchQueryChange
-                )
+//                SearchBar(
+//                    value = uiState.searchQuery,
+//                    onValueChange = homeViewModel::onSearchQueryChange
+//                )
                 Spacer(Modifier.height(16.dp))
                 SectionTitle(title = "Selamat Datang,")
                 Text(

@@ -31,13 +31,19 @@ fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
     val floorData by viewModel.floorData.collectAsState()
     val verticalScrollState = rememberScrollState()
     val horizontalScrollState = rememberScrollState()
+    val listLoading by viewModel.listLoading.collectAsState()
+
+
+    val searchResults by viewModel.searchResults.collectAsState()
+    val isSearching = uiState.searchQuery.isNotBlank()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(
                 min = 0.5f.toScreenHeight(),
-                max = 0.75f.toScreenHeight()
+                max = if (isSearching) 0.95f.toScreenHeight() else 0.75f.toScreenHeight()
+//                max = 0.75f.toScreenHeight()
             )
             .verticalScroll(verticalScrollState)
             .padding(16.dp)
@@ -53,36 +59,74 @@ fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
 
         SearchBar(
             value = uiState.searchQuery,
-            onValueChange = viewModel::onSearchQueryChange
+            onValueChange = { query ->
+                viewModel.onSearchQueryChange(query)
+                viewModel.searchPoi(query)
+            },
+            onSearchSubmit = {
+                viewModel.searchPoi(uiState.searchQuery)
+            }
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier
-                .horizontalScroll(horizontalScrollState)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            QuickButton("Area Stupa")
-            QuickButton("Pintu Masuk")
-            QuickButton("Pintu Keluar")
-            QuickButton("Pintu Utara")
-            QuickButton("Pintu Selatan")
-        }
+        if (isSearching) {
+            when {
+                listLoading -> {
+                    Text(
+                        text = "Mencari lokasi...",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
 
-        Spacer(modifier = Modifier.height(12.dp))
+                searchResults.isEmpty() -> {
+                    Text(
+                        text = "Tidak ditemukan hasil untuk \"${uiState.searchQuery}\"",
+                        color = Color.Gray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
 
-        if (floorData.isNotEmpty()) {
-            floorData.forEach { floor ->
-                ExpendableMenu(title = floor.title, items = floor.items)
+                else -> {
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        searchResults.forEach { item ->
+                            SearchResultItem(item = item, viewModel = viewModel)
+                        }
+                    }
+                }
             }
         } else {
-            Text(
-                text = "Data lokasi belum tersedia...",
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
+            // 🔹 Kalau gak search, tampilkan quick button + daftar lokasi
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(horizontalScrollState)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                QuickButton("Area Stupa")
+                QuickButton("Pintu Masuk")
+                QuickButton("Pintu Keluar")
+                QuickButton("Pintu Utara")
+                QuickButton("Pintu Selatan")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (floorData.isNotEmpty()) {
+                floorData.forEach { floor ->
+                    ExpendableMenu(title = floor.title, items = floor.items)
+                }
+            } else {
+                Text(
+                    text = "Data lokasi belum tersedia...",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+            }
         }
+
     }
 }

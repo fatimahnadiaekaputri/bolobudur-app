@@ -29,6 +29,9 @@ class MapViewModel @Inject constructor(
 
     fun onSearchQueryChange(query: String) {
         _uiState.value = _uiState.value.copy(searchQuery = query)
+        if (query.isBlank()) {
+            clearSearchResults()
+        }
     }
     private val _edges = MutableStateFlow<FeatureCollection?>(null)
     val edges: StateFlow<FeatureCollection?> = _edges
@@ -39,8 +42,12 @@ class MapViewModel @Inject constructor(
     private val _floorData = MutableStateFlow<List<FloorData>>(emptyList())
     val floorData: StateFlow<List<FloorData>> = _floorData
 
-    private val _loading = MutableStateFlow(true)
-    val loading: StateFlow<Boolean> = _loading
+    private val _mapLoading = MutableStateFlow(true)
+    val mapLoading: StateFlow<Boolean> = _mapLoading
+
+    private val _listLoading = MutableStateFlow(false)
+    val listLoading: StateFlow<Boolean> = _listLoading
+
 
     // Tambahan state shortest path
     private val _shortestPath = MutableStateFlow<FeatureCollection?>(null)
@@ -58,11 +65,15 @@ class MapViewModel @Inject constructor(
     private val _pathInfo = MutableStateFlow<ShortestPathResponse?>(null)
     val pathInfo: StateFlow<ShortestPathResponse?> = _pathInfo
 
+    private val _searchResults = MutableStateFlow<List<PoiFeature>>(emptyList())
+    val searchResults: StateFlow<List<PoiFeature>> = _searchResults
+
+
 
     fun loadMapData() {
         viewModelScope.launch {
             try {
-                _loading.value = true
+                _mapLoading.value = true
                 val edgesRes = repository.getEdges()
                 val poiRes = repository.getPoi()
 
@@ -76,7 +87,7 @@ class MapViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
             } finally {
-                _loading.value = false
+                _mapLoading.value = false
             }
         }
     }
@@ -170,4 +181,40 @@ class MapViewModel @Inject constructor(
             )
         }.sortedBy { it.title }
     }
+
+    fun searchPoi(keyword: String) {
+        viewModelScope.launch {
+            try {
+                _listLoading.value = true
+                val response = repository.searchPoi(keyword)
+
+                val results = response?.features()?.mapNotNull { feature ->
+                    val props = feature.properties()
+                    val label = props?.get("label")?.asString
+                    val lokasi = props?.get("lokasi")?.asString
+                    val poi = props?.get("poi")?.asString
+                    val geometry = feature.geometry() as? Point
+                    val lat = geometry?.latitude()
+                    val lon = geometry?.longitude()
+
+                    if (label != null && lat != null && lon != null) {
+                        PoiFeature(label, poi ?: "", lokasi ?: "", lat, lon)
+                    } else null
+                } ?: emptyList()
+
+                _searchResults.value = results
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _searchResults.value = emptyList()
+            } finally {
+                _listLoading.value = false
+            }
+        }
+    }
+
+    fun clearSearchResults() {
+        _searchResults.value = emptyList()
+    }
+
+
 }

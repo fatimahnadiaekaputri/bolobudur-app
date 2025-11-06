@@ -41,6 +41,9 @@ fun BolomapsScreen(
     val isArrived by navigationViewModel.isArrived.collectAsState() // 🟢 UPDATE
     var showArrivalPopup by remember { mutableStateOf(false) }
 
+    val uiState by viewModel.uiState.collectAsState()
+    val isSearching = uiState.searchQuery.isNotBlank()
+
 //    val dummyPath = listOf(
 ////        listOf(110.203399, -7.607957),
 ////        listOf(110.203439, -7.607956),
@@ -124,6 +127,7 @@ fun BolomapsScreen(
         sheetPeekHeight = when {
             isNavigating -> 0.25f.toScreenHeight()
             isPathVisible -> 0.33f.toScreenHeight()
+            isSearching -> 0.95f.toScreenHeight()
             else -> 0.5f.toScreenHeight()
         },
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
