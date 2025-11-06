@@ -93,6 +93,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.2.1")
     implementation("com.squareup.okhttp3:logging-interceptor:5.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
 //    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

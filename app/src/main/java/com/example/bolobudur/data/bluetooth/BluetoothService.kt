@@ -83,9 +83,9 @@ class BluetoothService : Service() {
     @SuppressLint("ForegroundServiceType")
     private fun startDummyStream() {
         val dummyPath = listOf(
-            listOf(110.20342548884258, -7.607964298841097),
-            listOf(110.20342548884258, -7.6079817246250485),
-            listOf(110.20342548884258, -7.607991526629078)
+            listOf(110.20349665886357, -7.60789447321352),
+            listOf(110.20349551018717, -7.6078625933894415),
+            listOf(110.20414057907232, -7.607896097934955)
         )
 
         readJob?.cancel()

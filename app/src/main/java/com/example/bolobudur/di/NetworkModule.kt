@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.bolobudur.BuildConfig
 import com.example.bolobudur.data.local.TokenManager
 import com.example.bolobudur.data.remote.AuthApi
+import com.example.bolobudur.data.remote.CulturalSiteApiService
 import com.example.bolobudur.data.remote.MapApiService
 import dagger.Module
 import dagger.Provides
@@ -98,4 +99,8 @@ object NetworkModule {
     @Provides @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
+
+    @Provides @Singleton
+    fun provideCulturalSiteApiService(retrofit: Retrofit): CulturalSiteApiService =
+        retrofit.create(CulturalSiteApiService::class.java)
 }
