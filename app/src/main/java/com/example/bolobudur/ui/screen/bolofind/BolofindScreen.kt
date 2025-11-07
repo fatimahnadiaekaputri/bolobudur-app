@@ -1,49 +1,42 @@
 package com.example.bolobudur.ui.screen.bolofind
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bolobudur.ui.components.TopBar
 import com.example.bolobudur.ui.components.FeatureCard
 import com.example.bolobudur.ui.model.FeatureData
-import com.example.bolobudur.R
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BolofindScreen(navController: NavController) {
+fun BolofindScreen(
+    navController: NavController,
+    viewModel: BoloFindViewModel = hiltViewModel(),
+    navigationViewModel: NavigationViewModel = hiltViewModel()
+) {
+    val features by viewModel.features.collectAsState()
+    val zoneName by viewModel.zoneName.collectAsState()
+    val currentPos by navigationViewModel.currentPosition.collectAsState()
 
-    val nearbyFeatures = listOf(
-        FeatureData(
-            id = 1,
-            title = "Dhyani Buddha",
-            description = "Dhyani Buddha Waisacana yang menggambarkan sikap tangan vitarka mudra.",
-            imageRes = R.drawable.bolofind_feature // Ganti dengan gambar kamu sendiri di drawable
-        ),
-        FeatureData(
-            id = 2,
-            title = "Dhyani Buddha",
-            description = "Dhyani Buddha Waisacana yang menggambarkan sikap tangan vitarka mudra.",
-            imageRes = R.drawable.bolomaps_feature
-        )
-    )
+    LaunchedEffect(currentPos) {
+        currentPos?.let {
+            viewModel.loadNearby(
+                lat = it.latitude(),
+                lon = it.longitude()
+            )
+        }
+    }
+
 
     Scaffold(
         topBar = { TopBar(title = "BoloFind", navController = navController) }
@@ -54,6 +47,7 @@ fun BolofindScreen(navController: NavController) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+            // --- Lokasi user ---
             Text(
                 text = "Kamu sedang berada di",
                 style = MaterialTheme.typography.bodyMedium,
@@ -66,18 +60,15 @@ fun BolofindScreen(navController: NavController) {
             ) {
                 Icon(Icons.Outlined.Place, contentDescription = "Location")
                 Text(
-                    text = "Area Stupa",
+                    text = zoneName,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }
 
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                thickness = DividerDefaults.Thickness,
-                color = DividerDefaults.color
-            )
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
 
+            // --- Nearby items ---
             Text(
                 text = "Lihat apa yang ada di sekitar kamu",
                 style = MaterialTheme.typography.titleMedium,
@@ -85,18 +76,31 @@ fun BolofindScreen(navController: NavController) {
             )
 
             LazyColumn(
+                contentPadding = PaddingValues(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                items(nearbyFeatures) { feature ->
-                    FeatureCard(
-                        feature = feature,
-                        navController = navController,
-                        onCardClick = {
-                            navController.navigate("detail/${feature.id}")
-                        },
-                            modifier = Modifier.fillMaxWidth().aspectRatio(1.3f))
-                        Spacer(Modifier.height(12.dp)
+                items(features) { feature ->
+                    val featureData = FeatureData(
+                        id = feature.id, // ✅ pakai feature.id, bukan dari properties
+                        title = feature.properties.label,
+                        description = feature.properties.culturalSite.description
+                            ?.split(" ")
+                            ?.take(50)
+                            ?.joinToString(" ")
+                            ?: "Tidak ada deskripsi.",
+                        imageUrl = feature.properties.culturalSite.imageUrl
                     )
+
+                    FeatureCard(
+                        feature = featureData,
+                        navController = navController,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
         }

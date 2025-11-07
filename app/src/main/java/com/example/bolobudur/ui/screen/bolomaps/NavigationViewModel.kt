@@ -36,7 +36,9 @@ class NavigationViewModel @Inject constructor(
     private val _currentPosition = MutableStateFlow<Point?>(null)
     val currentPosition = _currentPosition.asStateFlow()
 
-    private var pathSegments: List<List<Point>> = emptyList()
+    private var _pathSegments: List<List<Point>> = emptyList()
+    val pathSegments: List<List<Point>> get() = _pathSegments
+
 
     private val _isArrived = MutableStateFlow(false)
     val isArrived = _isArrived.asStateFlow()
@@ -47,31 +49,48 @@ class NavigationViewModel @Inject constructor(
     init {
         // 🔹 pantau perubahan lat, lon, dan imu secara real-time dari repository
         viewModelScope.launch {
-            combine(latitude, longitude, imu) { lat, lon, bearing ->
-                Triple(lat, lon, bearing)
-            }.collect { (lat, lon, bearing) ->
+            combine(latitude, longitude, imu) { lat, lon, imuBearing ->
+                Triple(lat, lon, imuBearing)
+            }.collect { (lat, lon, imuBearing) ->
                 if (lat == 0.0 && lon == 0.0) return@collect
 
                 val currentPos = Point.fromLngLat(lon, lat)
+                val previousPos = _currentPosition.value ?: currentPos
                 _currentPosition.value = currentPos
 
-                if (pathSegments.isNotEmpty()) {
+                val gpsBearing = calculateBearing(
+                    previousPos.latitude(),
+                    previousPos.longitude(),
+                    currentPos.latitude(),
+                    currentPos.longitude()
+                )
+
+                val effectiveBearing =
+                    if (haversine(
+                        previousPos.latitude(),
+                        previousPos.longitude(),
+                        currentPos.latitude(),
+                        currentPos.longitude()
+                    ) > 0.5
+                        ) gpsBearing else imuBearing
+
+                if (_pathSegments.isNotEmpty()) {
                     updateNavigationLine(currentPos)
                     _remainingDistance.value = calculateRemainingDistance(currentPos)
                 }
 
-                _turnInstruction.value = detectTurn(bearing)
+                _turnInstruction.value = detectTurn(effectiveBearing)
             }
         }
     }
 
     fun startNavigation(shortestPath: ShortestPathResponse) {
-        pathSegments = shortestPath.geojson.features.map { feature ->
+        _pathSegments = shortestPath.geojson.features.map { feature ->
             feature.geometry.coordinates.map { coord -> Point.fromLngLat(coord[0], coord[1]) }
         }
 
         // 🔹 Buat full path dari semua titik
-        val allPoints = pathSegments.flatMap { it }
+        val allPoints = _pathSegments.flatMap { it }
         val line = LineString.fromLngLats(allPoints)
         _fullPathLine.value = FeatureCollection.fromFeatures(listOf(Feature.fromGeometry(line)))
 
@@ -84,11 +103,11 @@ class NavigationViewModel @Inject constructor(
     fun updateNavigationLine(currentPos: Point) {
         if (pathSegments.isEmpty() || _currentIndex.value >= pathSegments.size) return
 
-        val currentSegment = pathSegments[_currentIndex.value]
+        val currentSegment = _pathSegments[_currentIndex.value]
         val destination = currentSegment.last()
 
         // Full path: dari posisi user ke semua titik sisa (concat semua segment setelah currentIndex)
-        val remainingPoints = listOf(currentPos) + pathSegments
+        val remainingPoints = listOf(currentPos) + _pathSegments
             .drop(_currentIndex.value)
             .flatMap { it.drop(1) } // skip first point karena sudah currentPos
         val fullLine = LineString.fromLngLats(remainingPoints)
@@ -101,7 +120,7 @@ class NavigationViewModel @Inject constructor(
         _remainingDistance.value = distanceToDest
 
         if (distanceToDest < 2) {
-            if (_currentIndex.value < pathSegments.size - 1) {
+            if (_currentIndex.value < _pathSegments.size - 1) {
                 _currentIndex.value += 1
             } else {
                 _isArrived.value = true
@@ -111,18 +130,16 @@ class NavigationViewModel @Inject constructor(
     }
 
 
-
-
     fun resetNavigation() {
-        pathSegments = emptyList()
+        _pathSegments = emptyList()
         _remainingDistance.value = 0.0
         _isArrived.value = false
     }
 
     private fun calculateRemainingDistance(currentPos: Point): Double {
         var total = 0.0
-        for (i in _currentIndex.value until pathSegments.size) {
-            val segment = pathSegments[i]
+        for (i in _currentIndex.value until _pathSegments.size) {
+            val segment = _pathSegments[i]
             val start = if (i == _currentIndex.value) currentPos else segment.first()
             for (j in 0 until segment.size - 1) {
                 total += haversine(
@@ -137,12 +154,14 @@ class NavigationViewModel @Inject constructor(
 
     private fun detectTurn(bearing: Float): String {
         return when {
-            bearing in 330f..360f || bearing in 0f..30f -> "Lurus"
-            bearing in 31f..100f -> "Belok Kanan"
-            bearing in 260f..329f -> "Belok Kiri"
-            else -> "Putar Balik"
+            bearing >= 315f || bearing < 45f -> "Utara"
+            bearing >= 45f && bearing < 135f -> "Timur"
+            bearing >= 135f && bearing < 225f -> "Selatan"
+            bearing >= 225f && bearing < 315f -> "Barat"
+            else -> "Utara"
         }
     }
+
 
     private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val R = 6371e3 // meter
@@ -154,5 +173,18 @@ class NavigationViewModel @Inject constructor(
                 sin(dLon / 2).pow(2)
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return R * c
+    }
+
+    fun calculateBearing(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+        val lat1Rad = Math.toRadians(lat1)
+        val lat2Rad = Math.toRadians(lat2)
+        val deltaLonRad = Math.toRadians(lon2 - lon1)
+
+        val y = sin(deltaLonRad) * cos(lat2Rad)
+        val x = cos(lat1Rad) * sin(lat2Rad) -
+                sin(lat1Rad) * cos(lat2Rad) * cos(deltaLonRad)
+
+        val bearingRad = atan2(y, x)
+        return ((Math.toDegrees(bearingRad) + 360) % 360).toFloat()
     }
 }

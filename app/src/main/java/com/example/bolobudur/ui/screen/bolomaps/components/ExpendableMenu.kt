@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.data.model.PoiFeature
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowRight
@@ -41,9 +43,12 @@ import compose.icons.feathericons.Layers
 fun ExpendableMenu(
     title: String,
     items: List<PoiFeature>,
-    viewModel: MapViewModel = hiltViewModel()
+    viewModel: MapViewModel = hiltViewModel(),
+    navigationViewModel: NavigationViewModel = hiltViewModel()
 ) {
     var expanded by remember { mutableStateOf(false) }
+
+    val currentPos by navigationViewModel.currentPosition.collectAsState()
 
     Column {
         Row(
@@ -84,8 +89,8 @@ fun ExpendableMenu(
                 items.forEach { item ->
                     TextButton(onClick = {
                         // misal titik asal tetap (posisi user)
-                        val fromLat = -7.607980165670128
-                        val fromLon = 110.20339754845833
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
                         val toLat = item.lat
                         val toLon = item.lon
                         val destinationLabel = item.label

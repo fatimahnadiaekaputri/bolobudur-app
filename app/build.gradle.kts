@@ -76,6 +76,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.test)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.identity.jvm)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.text)
     kapt("com.google.dagger:hilt-compiler:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.navigation:navigation-compose:2.7.3")
@@ -91,6 +93,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:5.2.1")
     implementation("com.squareup.okhttp3:logging-interceptor:5.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+//    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")

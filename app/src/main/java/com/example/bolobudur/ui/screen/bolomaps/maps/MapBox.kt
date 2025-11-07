@@ -31,18 +31,19 @@ fun MapBox(
     navigationViewModel: NavigationViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val borobudur = Point.fromLngLat(110.2038, -7.6079)
+//    val borobudur = Point.fromLngLat(110.2038, -7.6079)
+    val testingTeti = Point.fromLngLat(110.37152147214815, -7.765591698479714)
     val viewportState = rememberMapViewportState {
-        setCameraOptions {
-            center(borobudur)
-            zoom(17.0)
-        }
+//        setCameraOptions {
+//            center(testingTeti)
+//            zoom(17.0)
+//        }
     }
 
     val edges by viewModel.edges.collectAsState()
     val poi by viewModel.poi.collectAsState()
     val path by viewModel.shortestPath.collectAsState()
-    val isLoading by viewModel.loading.collectAsState()
+    val isLoading by viewModel.mapLoading.collectAsState()
     val isPathLoading by viewModel.isPathLoading.collectAsState()
     val currentPos by navigationViewModel.currentPosition.collectAsState()
 
@@ -53,6 +54,12 @@ fun MapBox(
 
     LaunchedEffect(Unit) {
         viewModel.loadMapData()
+        viewportState.setCameraOptions {
+            center(testingTeti)
+            zoom(17.0)
+            pitch(0.0)
+            bearing(0.0)
+        }
     }
 
     if (isLoading) {
@@ -229,17 +236,29 @@ fun MapBox(
                         if (style.styleLayerExists("full-path-layer")) style.removeStyleLayer("full-path-layer")
                         if (style.styleSourceExists("full-path-source")) style.removeStyleSource("full-path-source")
                         if (style.styleLayerExists("dynamic-line-layer")) style.removeStyleLayer("dynamic-line-layer")
-                        if (style.styleSourceExists("dynamic-line-source")) style.removeStyleSource("dynamic-line-source")
+                        if (style.styleSourceExists("dynamic-line-source")) style.removeStyleSource(
+                            "dynamic-line-source"
+                        )
                     }
+                }
+            }
 
-                    // 🔹 Posisi user
+            MapEffect(currentPos) { mapView ->
+                val mapboxMap = mapView.mapboxMap
+                mapboxMap.getStyle { style ->
                     currentPos?.let { point ->
                         val id = "current-pos"
                         val layerId = "current-pos-layer"
+
                         if (style.styleSourceExists(id)) {
-                            style.getSourceAs<GeoJsonSource>(id)?.data(Feature.fromGeometry(point).toJson())
+                            style.getSourceAs<GeoJsonSource>(id)
+                                ?.data(Feature.fromGeometry(point).toJson())
                         } else {
-                            style.addSource(geoJsonSource(id) { data(Feature.fromGeometry(point).toJson()) })
+                            style.addSource(geoJsonSource(id) {
+                                data(
+                                    Feature.fromGeometry(point).toJson()
+                                )
+                            })
                             style.addLayer(circleLayer(layerId, id) {
                                 circleColor("#00FF00")
                                 circleRadius(6.0)
@@ -249,10 +268,10 @@ fun MapBox(
                         }
                     }
                 }
+
             }
 
         }
-
         if (isPathLoading) {
             Loader()
         }

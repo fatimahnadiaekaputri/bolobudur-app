@@ -20,50 +20,53 @@ import com.example.bolobudur.ui.components.Loader
 
 @Composable
 fun DeviceSelectionDialog(
-    devices: List<DeviceItem>,
+    pairedDevices: List<DeviceItem>,
+    scannedDevices: List<DeviceItem>,
+    isScanning: Boolean, // loader hanya untuk scan
     onDismiss: () -> Unit,
-    isLoading: Boolean = false,
     onDeviceSelected: (DeviceItem) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Pilih Perangkat Bluetooth") },
         text = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 100.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                when {
-                    isLoading -> {
-                        Loader() // 🔹 pakai Loader dari component
+            Column(modifier = Modifier.fillMaxWidth()) {
+
+                // ---- Paired Section ----
+                Text("Perangkat Terpasang (Paired)", style = MaterialTheme.typography.titleMedium)
+                if (pairedDevices.isEmpty()) {
+                    Text("Tidak ada perangkat paired")
+                } else {
+                    LazyColumn {
+                        itemsIndexed(pairedDevices) { _, d ->
+                            DeviceRow(d, onDeviceSelected)
+                        }
                     }
-                    devices.isEmpty() -> {
-                        Text("Tidak ada perangkat terdeteksi. Pastikan Bluetooth aktif.")
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // ---- Scanned Section ----
+                Text("Perangkat Ditemukan (Scan)", style = MaterialTheme.typography.titleMedium)
+
+                // Loader khusus scan
+                if (isScanning) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Loader()
                     }
-                    else -> {
-                        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                            itemsIndexed(devices) { index, d ->
-                                val interactionSource = remember { MutableInteractionSource() }
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp)
-                                        .clickable(
-                                            interactionSource = interactionSource,
-                                            indication = LocalIndication.current
-                                        ) { onDeviceSelected(d) },
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = d.name ?: "Unknown")
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(text = d.address, style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                                if (index < devices.size - 1) Spacer(modifier = Modifier.height(4.dp))
-                            }
+                }
+
+                if (!isScanning && scannedDevices.isEmpty()) {
+                    Text("Tidak ada perangkat ditemukan")
+                } else {
+                    LazyColumn {
+                        itemsIndexed(scannedDevices) { _, d ->
+                            DeviceRow(d, onDeviceSelected)
                         }
                     }
                 }
@@ -74,3 +77,26 @@ fun DeviceSelectionDialog(
         }
     )
 }
+
+
+@Composable
+private fun DeviceRow(device: DeviceItem, onDeviceSelected: (DeviceItem) -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current
+            ) { onDeviceSelected(device) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(device.name ?: "Unknown")
+            Text(device.address, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+
