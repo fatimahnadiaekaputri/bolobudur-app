@@ -36,13 +36,13 @@ fun BolofindScreen(navController: NavController) {
             id = 1,
             title = "Dhyani Buddha",
             description = "Dhyani Buddha Waisacana yang menggambarkan sikap tangan vitarka mudra.",
-            imageRes = R.drawable.sample_buddha // Ganti dengan gambar kamu sendiri di drawable
+            imageRes = R.drawable.bolofind_feature // Ganti dengan gambar kamu sendiri di drawable
         ),
         FeatureData(
             id = 2,
             title = "Dhyani Buddha",
             description = "Dhyani Buddha Waisacana yang menggambarkan sikap tangan vitarka mudra.",
-            imageRes = R.drawable.sample_buddha
+            imageRes = R.drawable.bolomaps_feature
         )
     )
 
@@ -82,8 +82,6 @@ fun BolofindScreen(navController: NavController) {
             )
 
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 items(nearbyFeatures) { feature ->
