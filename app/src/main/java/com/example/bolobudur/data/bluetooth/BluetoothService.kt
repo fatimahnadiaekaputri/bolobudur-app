@@ -47,7 +47,7 @@ class BluetoothService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        val filter = android.content.IntentFilter(android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        val filter = android.content.IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED)
         registerReceiver(bluetoothDisconnectReceiver, filter)
     }
 
