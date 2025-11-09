@@ -15,6 +15,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,22 +25,26 @@ import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.ui.components.BottomNavBar
 import com.example.bolobudur.ui.screen.profile.component.ProfileHeader
 import com.example.bolobudur.ui.screen.profile.component.ProfileMenuItem
+import com.example.bolobudur.ui.screen.profile.ProfileViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ProfileScreenPreview() {
-    val navController = rememberNavController()
-    ProfileScreen(navController = navController)
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun ProfileScreenPreview() {
+//    val navController = rememberNavController()
+//    ProfileScreen(navController = navController)
+//}
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel(),
+) {
+    val profileState by viewModel.profileState.collectAsState()
+
     Scaffold(
-        bottomBar = {
-            BottomNavBar(navController)
-        }
-    ) {
-            padding ->
+        bottomBar = {BottomNavBar(navController)}
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -47,8 +53,8 @@ fun ProfileScreen(navController: NavController) {
         ){
             // Header
             ProfileHeader(
-                name = "Hanifah",
-                email = "hanifahputriarani@mail.ugm.ac.id"
+                name = profileState.user?.name ?: "Guest",
+                email = profileState.user?.email ?: "-"
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -95,12 +101,5 @@ fun ProfileScreen(navController: NavController) {
                 )
             }
         }
-
-//        Box(
-//            modifier = Modifier.padding(padding).fillMaxSize(),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text("Selamat datang di Profile")
-//        }
     }
 }

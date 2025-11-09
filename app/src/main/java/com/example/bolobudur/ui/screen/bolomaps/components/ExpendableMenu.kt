@@ -5,6 +5,7 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -88,7 +89,6 @@ fun ExpendableMenu(
             ) {
                 items.forEach { item ->
                     TextButton(onClick = {
-                        // misal titik asal tetap (posisi user)
                         val fromLat = currentPos?.latitude() ?: 0.0
                         val fromLon = currentPos?.longitude() ?: 0.0
                         val toLat = item.lat
@@ -96,15 +96,27 @@ fun ExpendableMenu(
                         val destinationLabel = item.label
 
                         viewModel.getShortestPath(fromLat, fromLon, toLat, toLon, destinationLabel)
-                    }) {
-                        Text(item.label, color = Color.Black, fontWeight = FontWeight.Light)
-                        Spacer(modifier = Modifier.weight(1.5f))
-                        Icon(
-                            imageVector = FeatherIcons.ArrowRight,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.weight(0.5f)
-                        )
+                    }, modifier = Modifier.fillMaxWidth()
+                        ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = item.label,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Light,
+                                fontSize = 13.sp
+                            )
+                            Icon(
+                                imageVector = FeatherIcons.ArrowRight,
+                                contentDescription = null,
+                                tint = Color.Black
+                            )
+                        }
                     }
                 }
             }

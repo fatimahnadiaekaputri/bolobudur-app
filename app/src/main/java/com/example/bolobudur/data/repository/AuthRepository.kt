@@ -3,6 +3,8 @@ package com.example.bolobudur.data.repository
 import com.example.bolobudur.data.local.TokenManager
 import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
+import com.example.bolobudur.data.model.AuthResponse
+import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.remote.AuthApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -69,4 +71,16 @@ class AuthRepository @Inject constructor(
 
     // 🟡 Cek token lokal (untuk Splash)
     fun hasToken(): Boolean = tokenManager.getToken() != null
+
+    suspend fun getProfile(): AuthResponse {
+        val token = tokenManager.getToken() ?: throw Exception("Token tidak ditemukan")
+        return api.getProfile("Bearer $token")
+    }
+
+    suspend fun updateProfile(name: String, email: String): AuthResponse {
+        val token = tokenManager.getToken() ?: throw Exception("Token tidak ditemukan")
+        val request = UpdateProfileRequest(name, email)
+        return api.updateProfile("Bearer $token", request)
+    }
+
 }

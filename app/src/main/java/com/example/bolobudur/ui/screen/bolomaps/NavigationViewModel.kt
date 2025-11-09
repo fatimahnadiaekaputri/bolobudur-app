@@ -39,12 +39,14 @@ class NavigationViewModel @Inject constructor(
     private var _pathSegments: List<List<Point>> = emptyList()
     val pathSegments: List<List<Point>> get() = _pathSegments
 
-
     private val _isArrived = MutableStateFlow(false)
     val isArrived = _isArrived.asStateFlow()
 
     private var _fullPathLine = MutableStateFlow<FeatureCollection?>(null)
     val fullPathLine = _fullPathLine.asStateFlow()
+
+    private val _bearing = MutableStateFlow(0f)
+    val bearing: StateFlow<Float> = _bearing
 
     init {
         // 🔹 pantau perubahan lat, lon, dan imu secara real-time dari repository
@@ -73,6 +75,8 @@ class NavigationViewModel @Inject constructor(
                         currentPos.longitude()
                     ) > 0.5
                         ) gpsBearing else imuBearing
+
+                _bearing.value = effectiveBearing
 
                 if (_pathSegments.isNotEmpty()) {
                     updateNavigationLine(currentPos)
@@ -132,9 +136,13 @@ class NavigationViewModel @Inject constructor(
 
     fun resetNavigation() {
         _pathSegments = emptyList()
+        _fullPathLine.value = null
         _remainingDistance.value = 0.0
         _isArrived.value = false
+        _turnInstruction.value = "Lurus"
+        _currentIndex.value = 0
     }
+
 
     private fun calculateRemainingDistance(currentPos: Point): Double {
         var total = 0.0
@@ -152,7 +160,7 @@ class NavigationViewModel @Inject constructor(
     }
 
 
-    private fun detectTurn(bearing: Float): String {
+    fun detectTurn(bearing: Float): String {
         return when {
             bearing >= 315f || bearing < 45f -> "Utara"
             bearing >= 45f && bearing < 135f -> "Timur"

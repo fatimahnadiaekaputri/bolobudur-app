@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -19,6 +20,8 @@ import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
+import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -71,6 +74,32 @@ fun NavGraph(navController: NavHostController) {
                 2 -> BolofindScreen(navController = navController)
             }
         }
+
+        composable(
+            route = "bolomaps/{toLat}/{toLon}/{label}",
+        ) { backStackEntry ->
+            val toLat = backStackEntry.arguments?.getString("toLat")?.toDoubleOrNull() ?: 0.0
+            val toLon = backStackEntry.arguments?.getString("toLon")?.toDoubleOrNull() ?: 0.0
+            val label = backStackEntry.arguments?.getString("label") ?: ""
+
+            val mapViewModel: MapViewModel = hiltViewModel()
+            val navigationViewModel: NavigationViewModel = hiltViewModel()
+
+            LaunchedEffect(Unit) {
+                val currentPos = navigationViewModel.currentPosition.value
+                val fromLat = currentPos?.latitude() ?: 0.0
+                val fromLon = currentPos?.longitude() ?: 0.0
+
+                mapViewModel.getShortestPath(fromLat, fromLon, toLat, toLon, label)
+            }
+
+            BolomapsScreen(
+                navController = navController,
+                viewModel = mapViewModel,
+                navigationViewModel = navigationViewModel
+            )
+        }
+
 
 
 
