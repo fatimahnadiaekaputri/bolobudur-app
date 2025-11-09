@@ -20,6 +20,7 @@ import com.example.bolobudur.ui.screen.bolomaps.components.BottomSheetPath
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapBox
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.data.repository.LocationRepository
+import com.example.bolobudur.ui.screen.bolomaps.components.FloatingInstructionBox
 import com.example.bolobudur.utils.toScreenHeight
 import com.mapbox.geojson.Point
 import kotlinx.coroutines.delay
@@ -138,12 +139,17 @@ fun BolomapsScreen(
                     // 🔹 Navigasi aktif → tampilkan arah
                     isNavigating -> {
                         val remaining by navigationViewModel.remainingDistance.collectAsState()
-                        val instruction by navigationViewModel.turnInstruction.collectAsState()
                         BottomSheetNavigation(
+                            destinationLabel = selectedDestination?.label ?: "Area tidak diketahui",
                             remainingDistance = remaining,
-                            turnInstruction = instruction
+                            onStopNavigation = {
+                                navigationViewModel.resetNavigation() // hapus garis
+                                viewModel.resetPath() // hapus shortest path
+                                isNavigating = false
+                            }
                         )
                     }
+
 
                     // 🔹 Path ditemukan → tampilkan tombol mulai navigasi
                     isPathVisible -> {
@@ -175,6 +181,19 @@ fun BolomapsScreen(
                 .padding(padding)
         ) {
             MapBox()
+
+            if (isNavigating) {
+                val remaining by navigationViewModel.remainingDistance.collectAsState()
+                val instruction by navigationViewModel.turnInstruction.collectAsState()
+                val bearing by navigationViewModel.bearing.collectAsState(initial = 0f) // 🧭 ambil bearing dari ViewModel
+
+                FloatingInstructionBox(
+                    instruction = instruction.ifBlank { "Lurus" },
+                    bearing = bearing // 🔹 kirim bearing ke komponen
+//        distanceText = "${"%.0f".format(remaining)} m"
+                )
+            }
+
         }
     }
 
