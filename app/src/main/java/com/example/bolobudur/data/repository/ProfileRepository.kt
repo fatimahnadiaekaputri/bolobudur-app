@@ -1,12 +1,22 @@
 package com.example.bolobudur.data.repository
 
-import com.example.bolobudur.data.remote.ProfileApi
+import com.example.bolobudur.data.local.TokenManager
+import com.example.bolobudur.data.model.UpdateProfileRequest
+import com.example.bolobudur.data.model.UserProfile
+import com.example.bolobudur.data.remote.AuthApi
 import javax.inject.Inject
 
 class ProfileRepository @Inject constructor(
-    private val api: ProfileApi
+    private val api: AuthApi,
+    private val tokenManager: TokenManager
 ) {
-    suspend fun getProfile() = api.getProfile()
-    suspend fun updateProfile(name: String, email: String) =
-        api.updateProfile(mapOf("name" to name, "email" to email))
+    suspend fun getProfile(): UserProfile? {
+        val token = tokenManager.getToken() ?: return null
+        return api.getProfile("Bearer $token")
+    }
+
+    suspend fun updateProfile(profile: UpdateProfileRequest): UserProfile? {
+        val token = tokenManager.getToken() ?: return null
+        return api.updateProfile("Bearer $token", profile)
+    }
 }

@@ -63,7 +63,14 @@ fun NavGraph(navController: NavHostController) {
 
 
         composable(Screen.Profile.route) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable("detail/{featureId}") { backStackEntry ->

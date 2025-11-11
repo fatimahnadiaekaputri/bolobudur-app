@@ -3,8 +3,8 @@ package com.example.bolobudur.data.repository
 import com.example.bolobudur.data.local.TokenManager
 import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
-import com.example.bolobudur.data.model.AuthResponse
 import com.example.bolobudur.data.model.UpdateProfileRequest
+import com.example.bolobudur.data.model.UserProfile
 import com.example.bolobudur.data.remote.AuthApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -46,41 +46,32 @@ class AuthRepository @Inject constructor(
             }
         }
 
-    // 🟢 Validate token
-    suspend fun validateToken(): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val response = api.validate()
-            response.isSuccessful && response.body()?.valid == true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    // 🟢 Logout
-    suspend fun logout(): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val response = api.logout()
-            tokenManager.clearToken()
-            if (response.isSuccessful) Result.success(Unit)
-            else Result.failure(Exception("Logout failed"))
-        } catch (e: Exception) {
-            tokenManager.clearToken()
-            Result.failure(e)
-        }
-    }
-
-    // 🟡 Cek token lokal (untuk Splash)
-    fun hasToken(): Boolean = tokenManager.getToken() != null
-
-    suspend fun getProfile(): AuthResponse {
-        val token = tokenManager.getToken() ?: throw Exception("Token tidak ditemukan")
+    suspend fun getProfile(): UserProfile? {
+        val token = tokenManager.getToken() ?: return null
         return api.getProfile("Bearer $token")
     }
 
-    suspend fun updateProfile(name: String, email: String): AuthResponse {
-        val token = tokenManager.getToken() ?: throw Exception("Token tidak ditemukan")
-        val request = UpdateProfileRequest(name, email)
-        return api.updateProfile("Bearer $token", request)
+    suspend fun updateProfile(profile: UpdateProfileRequest): UserProfile? {
+        val token = tokenManager.getToken() ?: return null
+        return api.updateProfile("Bearer $token", profile)
     }
+
+    // 🟢 Validate token
+    suspend fun validateToken(): Boolean {
+        val token = tokenManager.getToken() ?: return false
+        val response = api.validateToken("Bearer $token")
+        return response.isSuccessful
+    }
+
+    suspend fun logout() {
+        val token = tokenManager.getToken() ?: return
+        api.logout("Bearer $token")
+        tokenManager.clearToken()
+    }
+
+    // 🟢 Logout
+
+    // 🟡 Cek token lokal (untuk Splash)
+    fun hasToken(): Boolean = tokenManager.getToken() != null
 
 }

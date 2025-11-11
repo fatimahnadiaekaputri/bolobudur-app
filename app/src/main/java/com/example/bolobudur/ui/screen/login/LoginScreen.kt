@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.R // Assuming your Borobudur image is in drawable/borobudur.png
+import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -44,6 +45,7 @@ fun LoginScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isSuccess by viewModel.isSuccess.collectAsState()
+
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -136,6 +138,10 @@ fun LoginScreen(
                     Button(
                         onClick = {
                             scope.launch {
+                                val request = LoginRequest(
+                                    email = email,
+                                    password = password
+                                )
                                 viewModel.login(email, password)
                             }
                         },
