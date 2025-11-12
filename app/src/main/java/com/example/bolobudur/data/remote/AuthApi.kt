@@ -3,7 +3,6 @@ package com.example.bolobudur.data.remote
 import com.example.bolobudur.data.model.AuthResponse
 import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
-import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.model.UserProfile
 import retrofit2.Response
 import retrofit2.http.Body
@@ -32,7 +31,7 @@ interface AuthApi {
     @PUT("api/auth/profile")
     suspend fun updateProfile(
         @Header("Authorization") token: String,
-        @Body profile: UpdateProfileRequest
+        @Body profile: String
     ): UserProfile
 
     @POST("api/auth/validate")

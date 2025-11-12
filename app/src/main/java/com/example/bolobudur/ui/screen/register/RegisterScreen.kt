@@ -18,6 +18,7 @@
     import androidx.hilt.navigation.compose.hiltViewModel
     import androidx.navigation.NavController
     import com.example.bolobudur.R
+    import com.example.bolobudur.data.model.RegisterRequest
     import com.example.bolobudur.ui.auth.AuthViewModel
     import kotlinx.coroutines.launch
 
@@ -36,6 +37,10 @@
         var name by remember { mutableStateOf("") }
         var email by remember { mutableStateOf("") }
         var password by remember { mutableStateOf("") }
+
+        var nameError by remember { mutableStateOf<String?>(null) }
+        var emailError by remember { mutableStateOf<String?>(null) }
+        var passwordError by remember { mutableStateOf<String?>(null) }
 
         // Navigasi otomatis ke login saat register berhasil
         LaunchedEffect(isSuccess) {
@@ -102,42 +107,99 @@
                     ) {
                         OutlinedTextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = {
+                                name = it
+                                nameError = null
+                                            },
                             label = { Text("Nama Lengkap*") },
                             placeholder = { Text("Masukkan nama lengkap Anda") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            isError = nameError != null
                         )
+                        if (nameError != null) {
+                            Text(
+                                text = nameError!!,
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
                         OutlinedTextField(
                             value = email,
-                            onValueChange = { email = it },
+                            onValueChange = {
+                                email = it
+                                emailError = null
+                                            },
                             label = { Text("Email*") },
                             placeholder = { Text("Masukkan alamat email Anda") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            isError = emailError != null
                         )
+                        if (emailError != null) {
+                            Text(
+                                text = emailError!!,
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
                         OutlinedTextField(
                             value = password,
-                            onValueChange = { password = it },
+                            onValueChange = {
+                                password = it
+                                passwordError = null
+                                            },
                             label = { Text("Password*") },
                             placeholder = { Text("Masukkan password Anda") },
                             visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            singleLine = true,
+                            isError = passwordError != null
                         )
+                        if (passwordError != null) {
+                            Text(
+                                text = passwordError!!,
+                                color = Color.Red,
+                                fontSize = 12.sp,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Button(
                             onClick = {
-                                scope.launch {
-                                    viewModel.register(name, email, password)
+                                var valid = true
+                                if (name.isBlank()) {
+                                    nameError = "Nama tidak boleh kosong"
+                                    valid = false
+                                }
+                                if (email.isBlank()) {
+                                    emailError = "Email tidak boleh kosong"
+                                    valid = false
+                                }
+                                if (password.isBlank()) {
+                                    passwordError = "Kata sandi tidak boleh kosong"
+                                    valid = false
+                                }
+
+                                if (valid) {
+                                    scope.launch {
+                                        val request = RegisterRequest(
+                                            name = name,
+                                            email = email,
+                                            password = password
+                                        )
+                                        viewModel.register(name, email, password)
+                                    }
                                 }
                             },
                             enabled = !isLoading,

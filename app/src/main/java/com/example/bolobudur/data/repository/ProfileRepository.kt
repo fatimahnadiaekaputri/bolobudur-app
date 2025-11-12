@@ -15,8 +15,5 @@ class ProfileRepository @Inject constructor(
         return api.getProfile("Bearer $token")
     }
 
-    suspend fun updateProfile(profile: UpdateProfileRequest): UserProfile? {
-        val token = tokenManager.getToken() ?: return null
-        return api.updateProfile("Bearer $token", profile)
-    }
+
 }

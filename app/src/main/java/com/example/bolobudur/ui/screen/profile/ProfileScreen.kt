@@ -94,7 +94,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Default.Person,
                         title = "Edit Profile",
-                        onClick = { /* TODO */ }
+                        onClick = { navController.navigate("updateProfile") }
                     )
                     ProfileMenuItem(
                         icon = Icons.Default.Lock,

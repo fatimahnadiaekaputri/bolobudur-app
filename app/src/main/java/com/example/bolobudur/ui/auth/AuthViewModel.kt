@@ -6,8 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.data.local.TokenManager
-import com.example.bolobudur.data.model.RegisterRequest
-import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.model.UserProfile
 import com.example.bolobudur.data.repository.AuthRepository
@@ -50,6 +48,20 @@ class AuthViewModel @Inject constructor(
 
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile
+
+    var email by mutableStateOf("")
+        private set
+
+    var password by mutableStateOf("")
+        private set
+
+    fun onEmailChange(newEmail: String) {
+        email = newEmail
+    }
+
+    fun onPasswordChange(newPassword: String) {
+        password = newPassword
+    }
 
     // 🟢 Register
     fun register(name: String, email: String, password: String) = viewModelScope.launch {
@@ -99,13 +111,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(profile: UpdateProfileRequest) = viewModelScope.launch {
-        try {
-            _userProfile.value = repository.updateProfile(profile)
-        } catch (e: Exception) {
-            _errorMessage.value = e.message
-        }
-    }
+
 
     // 🟢 Validate (dipakai di Splash)
     fun validateToken(onValid: () -> Unit, onInvalid: () -> Unit) = viewModelScope.launch {

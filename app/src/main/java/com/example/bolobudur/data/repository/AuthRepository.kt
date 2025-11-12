@@ -3,7 +3,6 @@ package com.example.bolobudur.data.repository
 import com.example.bolobudur.data.local.TokenManager
 import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
-import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.model.UserProfile
 import com.example.bolobudur.data.remote.AuthApi
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +50,7 @@ class AuthRepository @Inject constructor(
         return api.getProfile("Bearer $token")
     }
 
-    suspend fun updateProfile(profile: UpdateProfileRequest): UserProfile? {
+    suspend fun updateProfile(name: String, profile: String): UserProfile? {
         val token = tokenManager.getToken() ?: return null
         return api.updateProfile("Bearer $token", profile)
     }

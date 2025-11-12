@@ -22,6 +22,8 @@ import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
+import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
+
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -72,6 +74,14 @@ fun NavGraph(navController: NavHostController) {
                 }
             )
         }
+
+        composable("updateProfile") {
+            UpdateProfileScreen(
+                onProfileUpdated = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
 
         composable("detail/{featureId}") { backStackEntry ->
             val featureId = backStackEntry.arguments?.getString("featureId")?.toIntOrNull()
