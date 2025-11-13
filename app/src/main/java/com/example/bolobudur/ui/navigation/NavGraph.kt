@@ -14,7 +14,7 @@ import com.example.bolobudur.ui.screen.login.LoginScreen
 import com.example.bolobudur.ui.screen.register.RegisterScreen
 import com.example.bolobudur.ui.screen.borobudurpedia.BorobudurpediaScreen
 import com.example.bolobudur.ui.screen.home.HomeScreen
-import com.example.bolobudur.ui.screen.home.ProfileScreen
+import com.example.bolobudur.ui.screen.profile.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -22,6 +22,7 @@ import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
+import com.example.bolobudur.ui.screen.borobudurpedia.CulturalSiteScreen
 import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
 
 
@@ -115,6 +116,10 @@ fun NavGraph(navController: NavHostController) {
                 viewModel = mapViewModel,
                 navigationViewModel = navigationViewModel
             )
+        }
+
+        composable("cultural-site") {
+            CulturalSiteScreen(navController = navController)
         }
 
 
