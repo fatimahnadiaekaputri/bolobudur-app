@@ -1,5 +1,7 @@
 package com.example.bolobudur.ui.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -17,7 +19,9 @@ import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
+import com.example.bolobudur.ui.screen.borobudurpedia.CategoryScreen
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
@@ -67,6 +71,20 @@ fun NavGraph(navController: NavHostController) {
                 2 -> BolofindScreen(navController = navController)
             }
         }
+
+        composable(
+            route = "category/{categoryName}"
+        ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "Kategori"
+            CategoryScreen(
+                navController = navController,
+                categoryName = categoryName
+            )
+        }
+
+
+
+
 
 
 
