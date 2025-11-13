@@ -64,7 +64,6 @@ fun NavGraph(navController: NavHostController) {
             BorobudurpediaScreen(navController = navController)
         }
 
-
         composable(Screen.Profile.route) {
             ProfileScreen(
                 navController = navController,

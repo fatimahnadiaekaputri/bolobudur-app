@@ -10,4 +10,6 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object Home : Screen("home", "Home", FeatherIcons.Home)
     object Borobudurpedia: Screen("borobudurpedia", "BOROBUDURpedia", FeatherIcons.BookOpen)
     object  Profile: Screen("profile", "Profil", FeatherIcons.User)
+
+    object Category : Screen("category/{categoryName}", "Category", FeatherIcons.BookOpen)
 }
