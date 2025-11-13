@@ -20,9 +20,13 @@ import com.example.bolobudur.ui.screen.bolomaps.components.BottomSheetPath
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapBox
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.data.repository.LocationRepository
+import com.example.bolobudur.ui.components.DefaultPopup
 import com.example.bolobudur.ui.screen.bolomaps.components.FloatingInstructionBox
 import com.example.bolobudur.utils.toScreenHeight
 import com.mapbox.geojson.Point
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Map
+import compose.icons.feathericons.Search
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +48,11 @@ fun BolomapsScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val isSearching = uiState.searchQuery.isNotBlank()
+
+    var showPopup by remember { mutableStateOf(false) }
+
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
 
 //    val dummyPath = listOf(
 ////        listOf(110.203399, -7.607957),
@@ -146,6 +155,8 @@ fun BolomapsScreen(
                                 navigationViewModel.resetNavigation() // hapus garis
                                 viewModel.resetPath() // hapus shortest path
                                 isNavigating = false
+                                showPopup = true
+
                             }
                         )
                     }
@@ -185,35 +196,62 @@ fun BolomapsScreen(
             if (isNavigating) {
                 val remaining by navigationViewModel.remainingDistance.collectAsState()
                 val instruction by navigationViewModel.turnInstruction.collectAsState()
-                val bearing by navigationViewModel.bearing.collectAsState(initial = 0f) // 🧭 ambil bearing dari ViewModel
+                val bearing by navigationViewModel.bearing.collectAsState(initial = 0f)
 
                 FloatingInstructionBox(
                     instruction = instruction.ifBlank { "Lurus" },
-                    bearing = bearing // 🔹 kirim bearing ke komponen
-//        distanceText = "${"%.0f".format(remaining)} m"
+                    bearing = bearing,
+                    distanceText = "${"%.0f".format(remaining)} m"
                 )
             }
 
         }
     }
 
+    DefaultPopup(
+        visible = showPopup,
+        onDismiss = { showPopup = false },
+        title = "Lihat Sekitar",
+        description = "Ayo lihat apa yang ada di sekitarmu, dan pelajari lebih dekat!",
+        icon = FeatherIcons.Search,
+        onConnect = {
+            showPopup = false
+            navController.navigate("bolofind")
+        }
+    )
+
     LaunchedEffect(isArrived) {
         if (isArrived) showArrivalPopup = true
     }
 
     if (showArrivalPopup) {
-        AlertDialog(
-            onDismissRequest = { showArrivalPopup = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showArrivalPopup = false
-                    navigationViewModel.resetNavigation() // 🟢 hapus garis + reset
-                }) {
-                    Text("OK")
-                }
-            },
-            title = { Text("Anda sudah sampai 🎉") },
-            text = { Text("Selamat! Anda telah tiba di lokasi tujuan.") }
+        DefaultPopup(
+            visible = showArrivalPopup,
+            onDismiss = {
+                showArrivalPopup = false
+                navigationViewModel.resetNavigation()
+                isNavigating = false
+                        },
+            title = "Lihat Sekitar",
+            description = "Kamu sudah sampai! Ayo lihat apa yang ada di sekitarmu, dan pelajari lebih dekat!",
+            icon = FeatherIcons.Search,
+            onConnect = {
+                showPopup = false
+                navController.navigate("bolofind")
+            }
         )
     }
+
+    if (errorMessage != null) {
+        DefaultPopup(
+            visible = true,
+            onDismiss = { viewModel.clearErrorMessage() },
+            title = "Rute Tidak Ditemukan",
+            description = errorMessage ?: "Terjadi kesalahan saat memuat rute.",
+            icon = FeatherIcons.Map,
+            onConnect = { viewModel.clearErrorMessage() },
+            showSkip = false
+        )
+    }
+
 }

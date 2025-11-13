@@ -20,7 +20,6 @@ import com.example.bolobudur.data.model.BtState
 @HiltViewModel
 class BluetoothViewModel @Inject constructor(
     private val receiver: BluetoothReceiver,
-    val locationRepository: LocationRepository
 ) : ViewModel() {
 
     private val _isBluetoothEnabled = MutableStateFlow(false)
@@ -36,8 +35,9 @@ class BluetoothViewModel @Inject constructor(
     private val _isScanning = MutableStateFlow(false)
     val isScanning = _isScanning.asStateFlow()
 
-    private val _btState = MutableStateFlow(BtState())
-    val btState = _btState.asStateFlow()
+    private val _isDeviceConnected = MutableStateFlow(false)
+    val isDeviceConnected = _isDeviceConnected.asStateFlow()
+
 
 
     fun checkBluetoothEnabled() {
@@ -62,23 +62,6 @@ class BluetoothViewModel @Inject constructor(
         }
     }
 
-    fun updateBtState(
-        isEnabled: Boolean? = null,
-        isConnected: Boolean? = null,
-        isPaused: Boolean? = null,
-        deviceName: String? = null,
-        isScanning: Boolean? = null
-    ) {
-        _btState.value = _btState.value.copy(
-            isEnabled = isEnabled ?: _btState.value.isEnabled,
-            isConnected = isConnected ?: _btState.value.isConnected,
-            isPaused = isPaused ?: _btState.value.isPaused,
-            deviceName = deviceName ?: _btState.value.deviceName,
-            isScanning = isScanning ?: _btState.value.isScanning
-        )
-    }
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun startService(context: Context, addr: String, isDummy: Boolean) {
         val intent = Intent(context.applicationContext, BluetoothService::class.java).apply {
@@ -87,11 +70,13 @@ class BluetoothViewModel @Inject constructor(
         }
 
         context.startForegroundService(intent)
+        _isDeviceConnected.value = true
     }
 
-    fun stopService(context: Context) {
-        context.stopService(Intent(context, BluetoothService::class.java))
-    }
+//    fun stopService(context: Context) {
+//        context.stopService(Intent(context, BluetoothService::class.java))
+//        _isDeviceConnected.value = false
+//    }
 }
 
 

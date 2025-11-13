@@ -30,6 +30,7 @@ import com.mapbox.maps.plugin.animation.easeTo
 import com.example.bolobudur.R
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
+import com.mapbox.maps.toCameraOptions
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
@@ -38,8 +39,8 @@ fun MapBox(
     navigationViewModel: NavigationViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-//    val borobudur = Point.fromLngLat(110.2038, -7.6079)
-    val testingTeti = Point.fromLngLat(110.37152147214815, -7.765591698479714)
+    val borobudur = Point.fromLngLat(110.2038, -7.6079)
+//    val testingTeti = Point.fromLngLat(110.37152147214815, -7.765591698479714)
     val viewportState = rememberMapViewportState {
 //        setCameraOptions {
 //            center(testingTeti)
@@ -53,6 +54,7 @@ fun MapBox(
     val isLoading by viewModel.mapLoading.collectAsState()
     val isPathLoading by viewModel.isPathLoading.collectAsState()
     val currentPos by navigationViewModel.currentPosition.collectAsState()
+    val bearing by navigationViewModel.bearing.collectAsState(initial = 0f)
 
     val isArrived by navigationViewModel.isArrived.collectAsState()
 
@@ -62,7 +64,7 @@ fun MapBox(
     LaunchedEffect(Unit) {
         viewModel.loadMapData()
         viewportState.setCameraOptions {
-            center(testingTeti)
+            center(borobudur)
             zoom(17.0)
             pitch(0.0)
             bearing(0.0)
@@ -130,12 +132,12 @@ fun MapBox(
                             it.removeStyleSource("destination-marker-source")
                         }
 
-                        viewportState.setCameraOptions {
-                            center(Point.fromLngLat(110.2038, -7.6079))
-                            zoom(17.0)
-                            pitch(0.0)
-                            bearing(0.0)
-                        }
+//                        viewportState.setCameraOptions {
+//                            center(Point.fromLngLat(110.2038, -7.6079))
+//                            zoom(17.0)
+//                            pitch(0.0)
+//                            bearing(0.0)
+//                        }
 
                         return@getStyle
                     }
@@ -407,8 +409,31 @@ fun MapBox(
                         }
                     }
                 }
-
             }
+
+            MapEffect(isNavigating, currentPos) { mapView ->
+                val mapboxMap = mapView.mapboxMap
+
+                if (isNavigating && currentPos != null) {
+                    val point = currentPos!!
+
+                    // Buat animasi kamera agar smooth mengikuti posisi
+                    val cameraOptions = mapboxMap.cameraState.toCameraOptions().toBuilder()
+                        .center(point)
+                        .zoom(18.0) // sesuaikan tingkat zoom
+                        .bearing(bearing.toDouble()) // jaga orientasi kamera
+                        .pitch(0.0) // efek 3D ringan
+                        .build()
+
+                    mapboxMap.easeTo(
+                        cameraOptions,
+                        mapAnimationOptions {
+                            duration(1500L) // durasi animasi
+                        }
+                    )
+                }
+            }
+
 
         }
         if (isPathLoading) {

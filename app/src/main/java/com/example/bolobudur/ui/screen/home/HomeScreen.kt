@@ -40,10 +40,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.CardDefaults.cardElevation
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.bolobudur.ui.components.DefaultPopup
 import com.example.bolobudur.ui.components.Loader
 import com.example.bolobudur.ui.screen.home.components.SearchResultSheet
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Bluetooth
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -64,18 +71,41 @@ fun HomeScreen(
     var showDeviceSelectionPopup by remember { mutableStateOf(false) }
     var showSheet by remember { mutableStateOf(false) }
 
-    //  cek Bluetooth otomatis
-    LaunchedEffect(isBluetoothEnabled) {
-        btViewModel.checkBluetoothEnabled()
-        if (!isBluetoothEnabled) {
-            showBtEnablePopup = true
-            showDeviceSelectionPopup = false
-        } else {
-            showBtEnablePopup = false
-            showDeviceSelectionPopup = true
-            btViewModel.loadDevices()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                btViewModel.checkBluetoothEnabled()
+                btViewModel.loadDevices()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+
+    //  cek Bluetooth otomatis
+    LaunchedEffect(isBluetoothEnabled, btViewModel.isDeviceConnected.collectAsState().value) {
+        btViewModel.checkBluetoothEnabled()
+        when {
+            !isBluetoothEnabled -> {
+                showBtEnablePopup = true
+                showDeviceSelectionPopup = false
+            }
+            isBluetoothEnabled && !btViewModel.isDeviceConnected.value -> {
+                showBtEnablePopup = false
+                showDeviceSelectionPopup = true
+                btViewModel.loadDevices()
+            }
+            btViewModel.isDeviceConnected.value -> {
+                showBtEnablePopup = false
+                showDeviceSelectionPopup = false
+            }
+        }
+    }
+
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
@@ -85,7 +115,6 @@ fun HomeScreen(
             .padding(innerPadding)
         ) {
 
-            // konten utama
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,7 +125,6 @@ fun HomeScreen(
                     GreetingSection(userName = uiState.userName)
                     Spacer(Modifier.height(8.dp))
 
-                    // 🔍 SearchBar di sini
                     SearchBar(
                         value = uiState.searchQuery,
                         onValueChange = {
@@ -131,7 +159,6 @@ fun HomeScreen(
                 }
             }
 
-            // overlay hasil pencarian
             if (showSheet) {
                 Box(
                     modifier = Modifier
@@ -201,15 +228,17 @@ fun HomeScreen(
 
     // --- Popup Bluetooth ---
     if (showBtEnablePopup) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("Bluetooth Mati") },
-            text = { Text("Silakan nyalakan Bluetooth untuk melanjutkan") },
-            confirmButton = {
-                TextButton(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
-                }) { Text("Buka Bluetooth") }
-            }
+        DefaultPopup(
+            visible = true,
+            onDismiss = {},
+            title = "Sambungkan Bluetooth",
+            description = "Dengan satu sambungan Bluetooth, mulai penjelajahanmu bersama Bolotooth!",
+            icon = FeatherIcons.Bluetooth,
+            onConnect = {
+                showBtEnablePopup = false
+                context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+            },
+            showSkip = false
         )
     }
 

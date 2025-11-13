@@ -1,4 +1,4 @@
-package com.example.bolobudur.ui.screen.home
+package com.example.bolobudur.ui.screen.borobudurpedia
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +46,13 @@ fun BorobudurpediaScreen(navController: NavController, locationViewModel: Locati
                 Text("Longitude: $lon")
                 Text("IMU: $imu°")
             }
+            Button(
+                onClick = { navController.navigate("cultural-site") },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(text = "Cultural Site")
+            }
+
         }
     }
 }

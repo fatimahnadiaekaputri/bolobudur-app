@@ -68,6 +68,8 @@ class MapViewModel @Inject constructor(
     private val _searchResults = MutableStateFlow<List<PoiFeature>>(emptyList())
     val searchResults: StateFlow<List<PoiFeature>> = _searchResults
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
 
 
     fun loadMapData() {
@@ -104,40 +106,47 @@ class MapViewModel @Inject constructor(
             try {
                 val response = repository.getShortestPath(fromLat, fromLon, toLat, toLon)
 
-                if (response != null) {
-                    _pathInfo.value = response
-                    _isPathVisible.value = true
+                if (response == null) {
+                    _errorMessage.value = "Gagal memuat rute. Coba lokasi lain."
+                    return@launch
+                }
 
-                    // 🔹 ubah geojson -> FeatureCollection
-                    val features = response.geojson.features.mapNotNull { feature ->
-                        val coords = feature.geometry.coordinates
-                        if (coords.size >= 2) {
-                            val lineString = com.mapbox.geojson.LineString.fromLngLats(
-                                coords.map { coord ->
-                                    com.mapbox.geojson.Point.fromLngLat(coord[0], coord[1])
-                                }
-                            )
-                            com.mapbox.geojson.Feature.fromGeometry(lineString).apply {
-                                addNumberProperty("distance", feature.properties.distance)
+                if (!response.success) {
+                    _errorMessage.value = response.message
+                    return@launch
+                }
+
+                _pathInfo.value = response
+                _isPathVisible.value = true
+
+                val features = response.geojson.features.mapNotNull { feature ->
+                    val coords = feature.geometry.coordinates
+                    if (coords.size >= 2) {
+                        val lineString = com.mapbox.geojson.LineString.fromLngLats(
+                            coords.map { coord ->
+                                Point.fromLngLat(coord[0], coord[1])
                             }
-                        } else null
-                    }
-                    _shortestPath.value = com.mapbox.geojson.FeatureCollection.fromFeatures(features)
-
-                    // 🔹 simpan label destinasi
-                    if (destinationLabel != null) {
-                        _selectedDestination.value = PoiFeature(
-                            label = destinationLabel,
-                            poi = "",
-                            lokasi = "",
-                            lat = toLat,
-                            lon = toLon
                         )
-                    }
+                        Feature.fromGeometry(lineString).apply {
+                            addNumberProperty("distance", feature.properties.distance)
+                        }
+                    } else null
+                }
+                _shortestPath.value = FeatureCollection.fromFeatures(features)
+
+                if (destinationLabel != null) {
+                    _selectedDestination.value = PoiFeature(
+                        label = destinationLabel,
+                        poi = "",
+                        lokasi = "",
+                        lat = toLat,
+                        lon = toLon
+                    )
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                _errorMessage.value = "Terjadi kesalahan saat memuat rute."
             } finally {
                 _isPathLoading.value = false
             }
@@ -145,6 +154,9 @@ class MapViewModel @Inject constructor(
     }
 
 
+    fun clearErrorMessage() {
+        _errorMessage.value = null
+    }
 
 
     fun resetPath() {

@@ -69,12 +69,12 @@ class NavigationViewModel @Inject constructor(
 
                 val effectiveBearing =
                     if (haversine(
-                        previousPos.latitude(),
-                        previousPos.longitude(),
-                        currentPos.latitude(),
-                        currentPos.longitude()
-                    ) > 0.5
-                        ) gpsBearing else imuBearing
+                            previousPos.latitude(),
+                            previousPos.longitude(),
+                            currentPos.latitude(),
+                            currentPos.longitude()
+                        ) > 0.5
+                    ) gpsBearing else imuBearing
 
                 _bearing.value = effectiveBearing
 

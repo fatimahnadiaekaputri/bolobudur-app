@@ -109,20 +109,12 @@ class BluetoothReceiver @Inject constructor(
         adapter?.startDiscovery()
     }
 
-    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-    @RequiresApi(Build.VERSION_CODES.S)
-    suspend fun getAllDevices(): List<DeviceItem> {
-        val paired = getPairedDevices()
-        val discovered = discoverDevices()
-
-        return (paired + discovered).distinctBy { it.address }
-    }
-
     /**
      * Connect to a BluetoothDevice using SPP UUID
      */
     suspend fun connectToDevice(device: BluetoothDevice): Boolean = withContext(Dispatchers.IO) {
         if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) return@withContext false
+        disconnect()
         return@withContext try {
             socket = device.createRfcommSocketToServiceRecord(uuid)
             socket?.connect()

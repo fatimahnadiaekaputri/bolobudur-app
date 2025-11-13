@@ -4,9 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -28,39 +32,71 @@ import compose.icons.feathericons.ArrowLeft
 @Composable
 fun TopBar(
     title: String,
-    navController: NavController
+    navController: NavController,
+    isTransparent: Boolean = false
 ) {
-    Surface (
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .shadow(4.dp, RoundedCornerShape(0.dp)),
-        color = Color(0xFFFDFDFD),
-        contentColor = Color.Black
-    ) {
+    if (isTransparent) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFFDFDFD)),
+                .fillMaxWidth()
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .height(56.dp)
+                .background(Color.Transparent),
             contentAlignment = Alignment.CenterStart
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = {navController.popBackStack()}) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = FeatherIcons.ArrowLeft,
                         contentDescription = "Back",
-                        tint = Color.Black
+                        tint = Color.White
                     )
                 }
-                Spacer(
-                    modifier = Modifier.width(4.dp)
-                )
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
+                    color = Color.White
                 )
+            }
+        }
+    } else {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .shadow(4.dp, RoundedCornerShape(0.dp)),
+            color = Color(0xFFFDFDFD),
+            contentColor = Color.Black
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFFDFDFD)),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = FeatherIcons.ArrowLeft,
+                            contentDescription = "Back",
+                            tint = Color.Black
+                        )
+                    }
+                    Spacer(
+                        modifier = Modifier.width(4.dp)
+                    )
+                    Text(
+                        text = title,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
+                    )
+                }
             }
         }
     }

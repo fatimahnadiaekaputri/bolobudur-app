@@ -9,6 +9,7 @@ import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresPermission
@@ -30,7 +31,9 @@ class BluetoothService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var readJob: Job? = null
     private var currentDevice: BluetoothDevice? = null
-    private var isDummy = false
+    private var currentAddress: String? = null
+
+    private var isDummyMode = false
     private var isPaused = false
     private var isConnected = false
 
@@ -55,9 +58,15 @@ class BluetoothService : Service() {
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val address = intent?.getStringExtra(EXTRA_DEVICE_ADDRESS)
-        isDummy = intent?.getBooleanExtra(EXTRA_IS_DUMMY, false) ?: false
+        val dummyFlag = intent?.getBooleanExtra(EXTRA_IS_DUMMY, isDummyMode) ?: isDummyMode
 
-        when(intent?.action) {
+        // detect if this intent introduces a NEW device address (before overwriting currentAddress)
+        val isNewDevice = address != null && address != currentAddress
+
+        if (address != null) currentAddress = address
+        isDummyMode = dummyFlag
+
+        when (intent?.action) {
             ACTION_PAUSE_RESUME -> {
                 togglePauseResume()
                 return START_STICKY
@@ -70,44 +79,101 @@ class BluetoothService : Service() {
 
         startForeground(NOTIF_ID, buildNotification("Preparing...", isPaused, isConnected))
 
-        if (isDummy) {
+        if (isDummyMode) {
             startDummyStream()
-        } else if (address != null) {
-            connectToDevice(address)
+        } else {
+            // if new device -> force disconnect existing and connect to new address
+            if (isNewDevice && address != null) {
+                Log.d("BluetoothService", "New device requested ($address) — resetting connection")
+                // reset current connection cleanly
+                readJob?.cancel()
+                try {
+                    bluetoothReceiver.disconnect()
+                } catch (e: Exception) {
+                    Log.w("BluetoothService", "Error while disconnecting old device", e)
+                }
+                isConnected = false
+                isPaused = false
+
+                connectToDevice(address)
+            } else if (address != null && !isConnected) {
+                // no current connection but address provided -> connect
+                connectToDevice(address)
+            }
         }
 
         return START_STICKY
     }
 
+    // ----------------------------- DUMMY MODE ---------------------------------
+
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("ForegroundServiceType")
     private fun startDummyStream() {
+        isConnected = true
+        readJob?.cancel()
+
         val dummyPath = listOf(
-            listOf(110.20349665886357, -7.60789447321352),
-            listOf(110.20349551018717, -7.6078625933894415),
-            listOf(110.20414057907232, -7.607896097934955)
+//            listOf(110.20340045586158, -7.608002259549181),
+//            listOf(110.20339948672768, -7.607981126273188),
+//            listOf(110.20339948672768, -7.607973441446134),
+//            listOf(110.20339851759377, -7.60796191420377),
+//            listOf(110.20343631384338, -7.607954229375352),
+//            listOf(110.203472, -7.607957),
+//            listOf(110.20352547423175, -7.607960953599985),
+//            listOf(110.20357683836858, -7.607955189979151),
+//            listOf(110.20363110990905, -7.60794366273727)
+//            listOf(110.365962390237, -7.7358614501326)
+            listOf(110.36599842764792, -7.7358836109075355),
+            listOf(110.36598151944116, -7.735917119558167),
+            listOf(110.36596179320082, -7.73594643962538),
+            listOf(110.36594629401162, -7.735971571110213),
+            listOf(110.36592656777117, -7.735998098787448),
+            listOf(110.36591247759964, -7.736017645495409),
+            listOf(110.36589275135913, -7.736042776974571),
+            listOf(110.36587443413629, -7.736067908453606),
+            listOf(110.36585188986203, -7.736100020896075),
+            listOf(110.36583216362163, -7.736126548565139),
+            listOf(110.36581102836357, -7.736148887652547),
+            listOf(110.36578989310698, -7.736175415318584),
+            listOf(110.36576593981516, -7.736207527752839),
+            listOf(110.3657476225909, -7.736238243993),
+            listOf(110.36572789635045, -7.736252205919229),
+            listOf(110.3657476225909, -7.7362731488069585),
+            listOf(110.36577721195158, -7.73630107265808),
+            listOf(110.3658011652434, -7.736322015543365),
+            listOf(110.36580828329193, -7.736324712518908),
+            listOf(110.36582421883804, -7.7363377164614775),
+            listOf(110.36584202915299, -7.736350720403522),
+            listOf(110.36585796469922, -7.736356293521212),
+            listOf(110.36587858717115, -7.736368368609519),
+            listOf(110.365937561531, -7.73640694308503)
         )
 
-        readJob?.cancel()
         readJob = serviceScope.launch {
-            while (isActive) {
+            while (isActive && isConnected) {
                 for (coord in dummyPath) {
-                    if (!isActive) break
+                    if (!isActive || isPaused) break
                     val lon = coord[0]
                     val lat = coord[1]
-                    val imu = (0..360).random().toFloat()
+                    val imu = (0).toFloat()
                     locationRepository.updateFromBluetooth(lat, lon, imu)
                     delay(2000L)
                 }
             }
         }
-        startForeground(NOTIF_ID, buildNotification("Dummy GPS running...", false, true))
+
+        updateNotification()
         pushStatusToRepository()
+        Log.d("BluetoothService", "Dummy GPS started")
     }
+
+    // ---------------------------- BLUETOOTH MODE ------------------------------
 
     private fun hasBluetoothConnectPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
         } else true
     }
 
@@ -122,7 +188,10 @@ class BluetoothService : Service() {
 
             val adapter = bluetoothReceiver.getAdapter()
             val device = adapter?.getRemoteDevice(address) ?: run { stopSelf(); return@launch }
-            currentDevice = device
+            currentDevice = device // update device reference
+
+            // Tambahkan log agar kelihatan device mana yang dihubungkan
+            Log.d("BluetoothService", "Connecting to ${device.name} [$address]")
 
             if (!bluetoothReceiver.connectToDevice(device)) {
                 isConnected = false
@@ -132,6 +201,7 @@ class BluetoothService : Service() {
                 return@launch
             }
 
+            // Setelah sukses connect, update notifikasi dengan nama baru
             isConnected = true
             updateNotification()
             pushStatusToRepository()
@@ -139,10 +209,11 @@ class BluetoothService : Service() {
         }
     }
 
+
     private fun startReadingLoop() {
         readJob?.cancel()
         readJob = serviceScope.launch {
-            while (isActive && !isPaused && isConnected) {
+            while (isActive && !isPaused && isConnected && !isDummyMode) {
                 bluetoothReceiver.readData()?.let { raw ->
                     try {
                         val j = JSONObject(raw)
@@ -158,21 +229,49 @@ class BluetoothService : Service() {
         }
     }
 
+    // ------------------------------- TOGGLES ----------------------------------
+
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun togglePauseResume() {
         isPaused = !isPaused
-        if (!isPaused && isConnected) startReadingLoop()
+        if (!isPaused && isConnected) {
+            if (isDummyMode) startDummyStream()
+            else startReadingLoop()
+        } else {
+            readJob?.cancel()
+        }
         updateNotification()
         pushStatusToRepository()
     }
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun toggleDisconnectConnect() {
+        if (isDummyMode) {
+            if (isConnected) {
+                readJob?.cancel()
+                isConnected = false
+                Log.d("BluetoothService", "Dummy disconnected")
+            } else {
+                startDummyStream()
+            }
+            updateNotification()
+            pushStatusToRepository()
+            return
+        }
+
         if (isConnected) {
             readJob?.cancel()
             bluetoothReceiver.disconnect()
             isConnected = false
+            updateNotification()
+            pushStatusToRepository()
         } else {
+            // if currentDevice is null, try to get it from currentAddress
+            if (currentDevice == null && currentAddress != null) {
+                val adapter = bluetoothReceiver.getAdapter()
+                currentDevice = adapter?.getRemoteDevice(currentAddress)
+            }
+
             currentDevice?.let { device ->
                 serviceScope.launch {
                     if (!hasBluetoothConnectPermission()) return@launch
@@ -185,14 +284,15 @@ class BluetoothService : Service() {
                 }
             }
         }
-        updateNotification()
-        pushStatusToRepository()
     }
+
+    // --------------------------- NOTIFICATION ---------------------------------
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun updateNotification() {
         val msg = when {
-            isDummy -> "Dummy GPS running..."
+            isDummyMode && isConnected -> "Dummy GPS running..."
+            isDummyMode && !isConnected -> "Dummy GPS stopped"
             !isConnected -> "Disconnected"
             isPaused -> "Paused"
             else -> "Connected: ${currentDevice?.name ?: "Unknown"}"
@@ -200,6 +300,101 @@ class BluetoothService : Service() {
         val notif = buildNotification(msg, isPaused, isConnected)
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIF_ID, notif)
+
+        Log.d("BluetoothService", "Notification updated: $msg")
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            if (nm.getNotificationChannel(NOTIF_CHANNEL_ID) == null) {
+                nm.createNotificationChannel(
+                    NotificationChannel(
+                        NOTIF_CHANNEL_ID,
+                        "Bluetooth Service",
+                        NotificationManager.IMPORTANCE_LOW
+                    )
+                )
+            }
+        }
+    }
+
+    private fun buildNotification(msg: String, isPaused: Boolean, isConnected: Boolean): android.app.Notification {
+        // Make Intents unique by embedding the currentAddress in the Intent data URI.
+        val pauseIntent = Intent(this, BluetoothService::class.java).apply {
+            action = ACTION_PAUSE_RESUME
+            putExtra(EXTRA_IS_DUMMY, isDummyMode)
+            putExtra(EXTRA_DEVICE_ADDRESS, currentAddress)
+            data = Uri.parse("bolobluetooth://$ACTION_PAUSE_RESUME/${currentAddress ?: "none"}")
+        }
+
+        val connectIntent = Intent(this, BluetoothService::class.java).apply {
+            action = ACTION_DISCONNECT_CONNECT
+            putExtra(EXTRA_IS_DUMMY, isDummyMode)
+            putExtra(EXTRA_DEVICE_ADDRESS, currentAddress)
+            data = Uri.parse("bolobluetooth://$ACTION_DISCONNECT_CONNECT/${currentAddress ?: "none"}")
+        }
+
+        return NotificationCompat.Builder(this, NOTIF_CHANNEL_ID)
+            .setContentTitle("BoloBluetooth")
+            .setContentText(msg)
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            // allow full refresh so Android updates text when we call notify
+            .setOnlyAlertOnce(false)
+            .setOngoing(true)
+            .addAction(
+                if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause,
+                if (isPaused) "Resume" else "Pause",
+                PendingIntent.getService(
+                    this,
+                    // include address hash in requestCode for extra uniqueness
+                    (0x1000 + (currentAddress?.hashCode() ?: 0)),
+                    pauseIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
+            .addAction(
+                if (isConnected) android.R.drawable.stat_sys_data_bluetooth else android.R.drawable.stat_notify_error,
+                if (isConnected) "Disconnect" else "Connect",
+                PendingIntent.getService(
+                    this,
+                    (0x2000 + (currentAddress?.hashCode() ?: 0)),
+                    connectIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this, 0,
+                    Intent(this, MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
+            .build()
+    }
+
+    // --------------------------- RECEIVER -------------------------------------
+
+    private val bluetoothDisconnectReceiver = object : android.content.BroadcastReceiver() {
+        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+        override fun onReceive(context: Context, intent: Intent) {
+            if (!hasBluetoothConnectPermission()) return
+            val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+            if (device != null && device == currentDevice) {
+                isConnected = false
+                Log.d("BluetoothService", "Device disconnected: ${device.name}")
+                updateNotification()
+                pushStatusToRepository()
+            }
+        }
+    }
+
+    // ---------------------------- CLEANUP -------------------------------------
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        Log.d("BluetoothService", "Task removed by user, stopping service.")
+        stopSelf()
     }
 
     override fun onDestroy() {
@@ -212,58 +407,7 @@ class BluetoothService : Service() {
 
     override fun onBind(intent: Intent?) = null
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            if (nm.getNotificationChannel(NOTIF_CHANNEL_ID) == null) {
-                nm.createNotificationChannel(
-                    NotificationChannel(NOTIF_CHANNEL_ID, "Bluetooth Service", NotificationManager.IMPORTANCE_LOW)
-                )
-            }
-        }
-    }
-
-    private fun buildNotification(msg: String, isPaused: Boolean, isConnected: Boolean) =
-        NotificationCompat.Builder(this, NOTIF_CHANNEL_ID)
-            .setContentTitle("BoloBluetooth")
-            .setContentText(msg)
-            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
-            .setOnlyAlertOnce(true)
-            .setOngoing(true)
-            .addAction(
-                if (isPaused) android.R.drawable.ic_media_play else android.R.drawable.ic_media_pause,
-                if (isPaused) "Resume" else "Pause",
-                PendingIntent.getService(
-                    this, 0, Intent(this, BluetoothService::class.java).apply { action = ACTION_PAUSE_RESUME },
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
-            .addAction(
-                if (isConnected) android.R.drawable.stat_sys_data_bluetooth
-                else android.R.drawable.stat_notify_error,
-                if (isConnected) "Disconnect" else "Connect",
-                PendingIntent.getService(
-                    this, 1, Intent(this, BluetoothService::class.java).apply { action = ACTION_DISCONNECT_CONNECT },
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
-            .setContentIntent(
-                PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
-            )
-            .build()
-
-    private val bluetoothDisconnectReceiver = object : android.content.BroadcastReceiver() {
-        @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
-        override fun onReceive(context: Context, intent: Intent) {
-            if (!hasBluetoothConnectPermission()) return
-            val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-            if (device != null && device == currentDevice) {
-                isConnected = false
-                updateNotification()
-                pushStatusToRepository()
-            }
-        }
-    }
+    // ------------------------ STATE SYNC --------------------------------------
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun pushStatusToRepository() {
@@ -274,5 +418,6 @@ class BluetoothService : Service() {
             deviceName = currentDevice?.name
         )
         locationRepository.updateBtStateFromService(state)
+        Log.d("BluetoothService", "State pushed: $state")
     }
 }
