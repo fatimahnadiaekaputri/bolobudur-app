@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.R
 import com.example.bolobudur.data.model.SearchResponse
 import com.example.bolobudur.data.repository.CulturalSiteRepository
+import com.example.bolobudur.data.repository.AuthRepository
 import com.example.bolobudur.ui.model.FeatureData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,13 +17,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repository: CulturalSiteRepository
+    private val repository: CulturalSiteRepository,
+    private val profileRepository: AuthRepository
 ): ViewModel(){
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
         loadFeatures()
+        loadUserName()
     }
 
     private fun loadFeatures() {
@@ -33,6 +36,22 @@ class HomeViewModel @Inject constructor(
                     FeatureData(2, "BoloFind", "Kenali arca dan relief secara otomatis...", R.drawable.bolofind_feature)
                 )
             )
+        }
+    }
+
+    private fun loadUserName() {
+        viewModelScope.launch {
+            try {
+                val profile = profileRepository.getProfile()
+                _uiState.update {
+                    it.copy(userName = profile?.name ?: "Guest")
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.update {
+                    it.copy(userName = "Guest")
+                }
+            }
         }
     }
 
@@ -65,7 +84,7 @@ class HomeViewModel @Inject constructor(
 }
 
 data class HomeUiState(
-    val userName: String = "Hanifah",
+    val userName: String = "Guest",
     val searchQuery: String = "",
     val features: List<FeatureData> = emptyList(),
     val searchResult: SearchResponse? = null,

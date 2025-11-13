@@ -22,7 +22,8 @@ import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
-import com.example.bolobudur.ui.screen.borobudurpedia.CulturalSiteScreen
+import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
+
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -64,8 +65,23 @@ fun NavGraph(navController: NavHostController) {
 
 
         composable(Screen.Profile.route) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(
+                navController = navController,
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
         }
+
+        composable("updateProfile") {
+            UpdateProfileScreen(
+                onProfileUpdated = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
 
         composable("detail/{featureId}") { backStackEntry ->
             val featureId = backStackEntry.arguments?.getString("featureId")?.toIntOrNull()
@@ -74,10 +90,6 @@ fun NavGraph(navController: NavHostController) {
                 1 -> BolomapsScreen(navController = navController)
                 2 -> BolofindScreen(navController = navController)
             }
-        }
-
-        composable("bolofind") {
-            BolofindScreen(navController = navController)
         }
 
         composable(
@@ -103,10 +115,6 @@ fun NavGraph(navController: NavHostController) {
                 viewModel = mapViewModel,
                 navigationViewModel = navigationViewModel
             )
-        }
-
-        composable("cultural-site") {
-            CulturalSiteScreen(navController = navController)
         }
 
 

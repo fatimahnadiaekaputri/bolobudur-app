@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.content.edit
 
 @Singleton
 class TokenManager @Inject constructor(
@@ -35,7 +36,7 @@ class TokenManager @Inject constructor(
 
     // 🟢 Simpan token
     fun saveToken(token: String) {
-        sharedPreferences.edit().putString(KEY_TOKEN, token).apply()
+        sharedPreferences.edit { putString(KEY_TOKEN, token) }
         _tokenFlow.value = token
     }
 
@@ -46,7 +47,7 @@ class TokenManager @Inject constructor(
 
     // 🔴 Hapus token (saat logout)
     fun clearToken() {
-        sharedPreferences.edit().remove(KEY_TOKEN).apply()
+        sharedPreferences.edit { remove(KEY_TOKEN) }
         _tokenFlow.value = null
     }
 }

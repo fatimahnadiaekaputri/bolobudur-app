@@ -95,7 +95,6 @@ object NetworkModule {
     fun provideMapApiService(retrofit: Retrofit): MapApiService =
         retrofit.create(MapApiService::class.java)
 
-    // ✅ Tambahkan AuthApi di sini
     @Provides @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
@@ -103,4 +102,5 @@ object NetworkModule {
     @Provides @Singleton
     fun provideCulturalSiteApiService(retrofit: Retrofit): CulturalSiteApiService =
         retrofit.create(CulturalSiteApiService::class.java)
+
 }
