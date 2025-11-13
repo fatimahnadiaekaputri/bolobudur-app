@@ -20,4 +20,9 @@ interface MapApiService {
         @Query("to_lat") toLat: Double,
         @Query("to_lon") toLon: Double
     ) : Response<ShortestPathResponse>
+
+    @GET("/api/poi/search")
+    suspend fun searchPoi(
+        @Query("keyword") keyword: String
+    ): Response<ResponseBody>
 }

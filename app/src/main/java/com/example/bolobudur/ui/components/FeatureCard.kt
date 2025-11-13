@@ -62,7 +62,7 @@ fun FeatureCard(feature: FeatureData, navController: NavController, modifier: Mo
                 )
             }
             IconButton(
-                onClick = {onCardClick()},
+                onClick = {navController.navigate("detail/${feature.id}")},
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(12.dp)

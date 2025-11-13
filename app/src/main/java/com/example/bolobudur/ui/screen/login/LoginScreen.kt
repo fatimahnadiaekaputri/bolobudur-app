@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.R // Assuming your Borobudur image is in drawable/borobudur.png
+import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.ui.auth.AuthViewModel
 import kotlinx.coroutines.launch
 
@@ -47,6 +48,15 @@ fun LoginScreen(
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    // 🟢 State untuk pesan error
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+
+    var showError by remember { mutableStateOf(false) }
+
+    val isFormValid = email.isNotBlank() && password.isNotBlank()
 
     // Navigasi otomatis saat login sukses
     LaunchedEffect(isSuccess) {
@@ -112,31 +122,71 @@ fun LoginScreen(
                 ) {
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = {
+                            email = it
+                            emailError = null
+                                        },
                         label = { Text("Email*") },
                         placeholder = { Text("Masukkan alamat email Anda") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        isError = emailError != null
                     )
+                    if (emailError != null) {
+                        Text(
+                            text = emailError!!,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = {
+                            password = it
+                            passwordError = null
+                                        },
                         label = { Text("Password*") },
                         placeholder = { Text("Masukkan password Anda") },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        isError = passwordError != null
                     )
+                    if (passwordError != null) {
+                        Text(
+                            text = passwordError!!,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Button(
                         onClick = {
-                            scope.launch {
-                                viewModel.login(email, password)
+                            var valid = true
+                            if (email.isBlank()) {
+                                emailError = "Email tidak boleh kosong"
+                                valid = false
+                            }
+                            if (password.isBlank()) {
+                                passwordError = "Kata sandi tidak boleh kosong"
+                                valid = false
+                            }
+
+                            if (valid) {
+                                scope.launch {
+                                    val request = LoginRequest(
+                                        email = email,
+                                        password = password
+                                    )
+                                    viewModel.login(email, password)
+                                }
                             }
                         },
                         enabled = !isLoading,
@@ -164,7 +214,7 @@ fun LoginScreen(
                     // Pesan error kalau gagal
                     if (!errorMessage.isNullOrEmpty()) {
                         Text(
-                            text = errorMessage ?: "",
+                            text = errorMessage ?: "Email atau kata sandi salah!",
                             color = Color.Red,
                             fontSize = 14.sp
                         )

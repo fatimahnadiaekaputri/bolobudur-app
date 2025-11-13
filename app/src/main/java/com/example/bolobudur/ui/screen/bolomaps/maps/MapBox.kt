@@ -1,9 +1,12 @@
 package com.example.bolobudur.ui.screen.bolomaps.maps
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.components.Loader
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
@@ -24,25 +27,30 @@ import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
 import com.mapbox.maps.plugin.animation.easeTo
+import com.example.bolobudur.R
+import com.mapbox.maps.extension.style.layers.generated.symbolLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 
+@SuppressLint("LocalContextResourcesRead")
 @Composable
 fun MapBox(
     viewModel: MapViewModel = hiltViewModel(),
     navigationViewModel: NavigationViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val borobudur = Point.fromLngLat(110.2038, -7.6079)
+//    val borobudur = Point.fromLngLat(110.2038, -7.6079)
+    val testingTeti = Point.fromLngLat(110.37152147214815, -7.765591698479714)
     val viewportState = rememberMapViewportState {
-        setCameraOptions {
-            center(borobudur)
-            zoom(17.0)
-        }
+//        setCameraOptions {
+//            center(testingTeti)
+//            zoom(17.0)
+//        }
     }
 
     val edges by viewModel.edges.collectAsState()
     val poi by viewModel.poi.collectAsState()
     val path by viewModel.shortestPath.collectAsState()
-    val isLoading by viewModel.loading.collectAsState()
+    val isLoading by viewModel.mapLoading.collectAsState()
     val isPathLoading by viewModel.isPathLoading.collectAsState()
     val currentPos by navigationViewModel.currentPosition.collectAsState()
 
@@ -53,6 +61,12 @@ fun MapBox(
 
     LaunchedEffect(Unit) {
         viewModel.loadMapData()
+        viewportState.setCameraOptions {
+            center(testingTeti)
+            zoom(17.0)
+            pitch(0.0)
+            bearing(0.0)
+        }
     }
 
     if (isLoading) {
@@ -83,18 +97,37 @@ fun MapBox(
                             style.removeStyleSource("shortest-path-source")
                         }
 
-                        if (style.styleLayerExists("route-markers-layer")) {
-                            style.removeStyleLayer("route-markers-layer")
+                        // --- ⛔️ PERUBAHAN DI SINI: Hapus layer marker LAMA ---
+//                        if (style.styleLayerExists("route-markers-layer")) {
+//                            style.removeStyleLayer("route-markers-layer")
+//                        }
+//                        if (style.styleSourceExists("route-markers-source")) {
+//                            style.removeStyleSource("route-markers-source")
+//                        }
+
+                        // --- ✅ PERUBAHAN DI SINI: Hapus layer marker BARU ---
+                        if (style.styleLayerExists("current-marker-layer")) {
+                            style.removeStyleLayer("current-marker-layer")
                         }
-                        if (style.styleSourceExists("route-markers-source")) {
-                            style.removeStyleSource("route-markers-source")
+                        if (style.styleSourceExists("current-marker-source")) {
+                            style.removeStyleSource("current-marker-source")
                         }
+                        if (style.styleLayerExists("destination-marker-layer")) {
+                            style.removeStyleLayer("destination-marker-layer")
+                        }
+                        if (style.styleSourceExists("destination-marker-source")) {
+                            style.removeStyleSource("destination-marker-source")
+                        }
+
 
                         mapboxMap.getStyle()?.let {
                             it.removeStyleLayer("shortest-path-layer")
                             it.removeStyleSource("shortest-path-source")
-                            it.removeStyleLayer("route-markers-layer")
-                            it.removeStyleSource("route-markers-source")
+
+                            it.removeStyleLayer("current-marker-layer")
+                            it.removeStyleSource("current-marker-source")
+                            it.removeStyleLayer("destination-marker-layer")
+                            it.removeStyleSource("destination-marker-source")
                         }
 
                         viewportState.setCameraOptions {
@@ -118,8 +151,7 @@ fun MapBox(
                     if (!isPathLoading && path != null) {
                         val sourceId = "shortest-path-source"
                         val layerId = "shortest-path-layer"
-                        val markerSourceId = "route-markers-source"
-                        val markerLayerId = "route-markers-layer"
+
 
                         val featureCollection = FeatureCollection.fromJson(path!!.toJson())
 
@@ -153,39 +185,75 @@ fun MapBox(
                             val startPoint = allCoordinates.first()
                             val endPoint = allCoordinates.last()
 
-                            val markerFeatures = listOf(
-                                Feature.fromGeometry(startPoint),
-                                Feature.fromGeometry(endPoint)
-                            )
+                            val currentSourceId = "current-marker-source"
+                            val currentLayerId = "current-marker-layer"
+                            val destinationSourceId = "destination-marker-source"
+                            val destinationLayerId = "destination-marker-layer"
 
-                            val markerCollection = FeatureCollection.fromFeatures(markerFeatures)
-
-                            if (style.styleSourceExists(markerSourceId)) {
-                                style.getSourceAs<GeoJsonSource>(markerSourceId)
-                                    ?.data(markerCollection.toJson())
+                            if (style.styleSourceExists(currentSourceId)) {
+                                style.getSourceAs<GeoJsonSource>(currentSourceId)?.feature(
+                                    Feature.fromGeometry(startPoint)
+                                )
                             } else {
                                 style.addSource(
-                                    geoJsonSource(markerSourceId) {
-                                        data(markerCollection.toJson())
+                                    geoJsonSource(currentSourceId) {
+                                        feature(Feature.fromGeometry(startPoint))
                                     }
                                 )
                             }
 
-                            if (!style.styleLayerExists(markerLayerId)) {
+                            if (!style.styleLayerExists(currentLayerId)) {
                                 style.addLayer(
-                                    circleLayer(
-                                        markerLayerId,
-                                        markerSourceId
-                                    ) {
-                                        circleColor("#FF0000")
+                                    circleLayer(currentLayerId, currentSourceId) {
                                         circleRadius(6.0)
-                                        circleStrokeWidth(2.0)
-                                        circleStrokeColor("#FFFFFF")
+                                        circleColor("#FF0000") // merah
+                                        circleStrokeColor("#880000")
+                                        circleStrokeWidth(1.0)
                                     }
                                 )
                             }
 
-                            // --- 🔹 Zoom kamera biar semua path kelihatan ---
+                            if (style.styleSourceExists(destinationSourceId)) {
+                                style.getSourceAs<GeoJsonSource>(destinationSourceId)?.feature(
+                                    Feature.fromGeometry(endPoint)
+                                )
+                            } else {
+                                style.addSource(
+                                    geoJsonSource(destinationSourceId) {
+                                        feature(Feature.fromGeometry(endPoint))
+                                    }
+                                )
+                            }
+
+                            if (!style.styleLayerExists(destinationLayerId)) {
+                                val bitmap = ContextCompat.getDrawable(context, R.drawable.ic_marker)?.toBitmap()
+
+                                if (bitmap != null) {
+                                    if (style.getStyleImage("destination-icon") == null) {
+                                        style.addImage("destination-icon", bitmap)
+                                    }
+
+                                    style.addLayer(
+                                        symbolLayer(destinationLayerId, destinationSourceId) {
+                                            iconImage("destination-icon")
+                                            iconAnchor(IconAnchor.BOTTOM)
+                                            iconAllowOverlap(true)
+                                            iconIgnorePlacement(true)
+                                        }
+                                    )
+                                } else {
+                                    style.addLayer(
+                                        circleLayer(destinationLayerId, destinationSourceId) {
+                                            circleRadius(6.0)
+                                            circleColor("#FF8C00") // Oranye
+                                            circleStrokeWidth(1.0)
+                                            circleStrokeColor("#FFFFFF")
+                                            circleOpacity(0.9)
+                                        }
+                                    )
+                                }
+                            }
+
                             val cameraOptions = mapboxMap.cameraForCoordinates(
                                 allCoordinates,
                                 EdgeInsets(100.0, 100.0, 100.0, 100.0),
@@ -201,13 +269,13 @@ fun MapBox(
 
                 }
             }
-            // POSISI USER DAN KAMERA NAVIGASI
+
             MapEffect(fullPath, currentPos, isArrived) { mapView ->
                 val mapboxMap = mapView.mapboxMap
                 mapboxMap.getStyle { style ->
 
                     if (!isArrived) {
-                        // 🔹 Full path (biru)
+                        // === Full path (biru) ===
                         fullPath?.let { full ->
                             val sourceId = "full-path-source"
                             val layerId = "full-path-layer"
@@ -224,22 +292,112 @@ fun MapBox(
                                 })
                             }
                         }
+
+                        // === Tambahan: marker merah di destination ===
+                        val destinationSourceId = "destination-source"
+                        val destinationLayerId = "destination-layer"
+
+                        // Ambil koordinat titik terakhir (destination)
+                        val destinationPoint = fullPath?.features()
+                            ?.lastOrNull()
+                            ?.geometry()
+                            ?.let { it as? LineString }
+                            ?.coordinates()
+                            ?.lastOrNull()
+
+                        destinationPoint?.let { dest ->
+                            val geoJson = FeatureCollection.fromFeatures(
+                                listOf(Feature.fromGeometry(Point.fromLngLat(dest.longitude(), dest.latitude())))
+                            )
+
+                            if (style.styleSourceExists(destinationSourceId)) {
+                                style.getSourceAs<GeoJsonSource>(destinationSourceId)?.featureCollection(geoJson)
+                            } else {
+                                style.addSource(geoJsonSource(destinationSourceId) {
+                                    featureCollection(geoJson)
+                                })
+                            }
+
+                            // Coba pakai icon custom marker merah
+                            val bitmap = ContextCompat.getDrawable(context, R.drawable.ic_marker)?.toBitmap()
+                            if (bitmap != null) {
+                                if (style.getStyleImage("destination-icon") == null) {
+                                    style.addImage("destination-icon", bitmap)
+                                }
+
+                                if (!style.styleLayerExists(destinationLayerId)) {
+                                    style.addLayer(
+                                        symbolLayer(destinationLayerId, destinationSourceId) {
+                                            iconImage("destination-icon")
+                                            iconAnchor(IconAnchor.BOTTOM)
+                                            iconAllowOverlap(true)
+                                            iconIgnorePlacement(true)
+                                        }
+                                    )
+                                }
+                            } else {
+                                // fallback kalau ic_marker_red ga ada
+                                if (!style.styleLayerExists(destinationLayerId)) {
+                                    style.addLayer(
+                                        circleLayer(destinationLayerId, destinationSourceId) {
+                                            circleRadius(6.0)
+                                            circleColor("#FF0000") // Merah
+                                            circleStrokeWidth(1.0)
+                                            circleStrokeColor("#FFFFFF")
+                                            circleOpacity(0.9)
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     } else {
-                        // 🔹 Hapus semua garis kalau sudah sampai
+                        // === Hapus semua garis dan marker kalau sudah sampai ===
+                        listOf(
+                            "full-path-layer", "full-path-source",
+                            "dynamic-line-layer", "dynamic-line-source",
+                            "destination-layer", "destination-source"
+                        ).forEach { id ->
+                            if (style.styleLayerExists(id)) style.removeStyleLayer(id)
+                            if (style.styleSourceExists(id)) style.removeStyleSource(id)
+                        }
+                    }
+                }
+            }
+
+            MapEffect(fullPath) { mapView ->
+                val mapboxMap = mapView.mapboxMap
+                mapboxMap.getStyle { style ->
+                    if (fullPath == null) {
                         if (style.styleLayerExists("full-path-layer")) style.removeStyleLayer("full-path-layer")
                         if (style.styleSourceExists("full-path-source")) style.removeStyleSource("full-path-source")
                         if (style.styleLayerExists("dynamic-line-layer")) style.removeStyleLayer("dynamic-line-layer")
                         if (style.styleSourceExists("dynamic-line-source")) style.removeStyleSource("dynamic-line-source")
-                    }
 
-                    // 🔹 Posisi user
+                        // 🧹 hapus juga icon marker tujuan
+                        if (style.styleLayerExists("destination-layer")) style.removeStyleLayer("destination-layer")
+                        if (style.styleSourceExists("destination-source")) style.removeStyleSource("destination-source")
+                    }
+                }
+            }
+
+
+
+            MapEffect(currentPos) { mapView ->
+                val mapboxMap = mapView.mapboxMap
+                mapboxMap.getStyle { style ->
                     currentPos?.let { point ->
                         val id = "current-pos"
                         val layerId = "current-pos-layer"
+
                         if (style.styleSourceExists(id)) {
-                            style.getSourceAs<GeoJsonSource>(id)?.data(Feature.fromGeometry(point).toJson())
+                            style.getSourceAs<GeoJsonSource>(id)
+                                ?.data(Feature.fromGeometry(point).toJson())
                         } else {
-                            style.addSource(geoJsonSource(id) { data(Feature.fromGeometry(point).toJson()) })
+                            style.addSource(geoJsonSource(id) {
+                                data(
+                                    Feature.fromGeometry(point).toJson()
+                                )
+                            })
                             style.addLayer(circleLayer(layerId, id) {
                                 circleColor("#00FF00")
                                 circleRadius(6.0)
@@ -249,10 +407,10 @@ fun MapBox(
                         }
                     }
                 }
+
             }
 
         }
-
         if (isPathLoading) {
             Loader()
         }
