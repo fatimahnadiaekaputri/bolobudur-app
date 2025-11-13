@@ -22,6 +22,7 @@ import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
+import com.example.bolobudur.ui.screen.borobudurpedia.CategoryScreen
 import com.example.bolobudur.ui.screen.borobudurpedia.CulturalSiteScreen
 import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
 
@@ -119,6 +120,16 @@ fun NavGraph(navController: NavHostController) {
 
         composable("cultural-site") {
             CulturalSiteScreen(navController = navController)
+        }
+
+        composable(
+            route = "category/{categoryName}"
+        ) { backStackEntry ->
+            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "Kategori"
+            CategoryScreen(
+                navController = navController,
+                categoryName = categoryName
+            )
         }
 
 

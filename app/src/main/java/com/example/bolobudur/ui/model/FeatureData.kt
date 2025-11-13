@@ -4,6 +4,6 @@ data class FeatureData(
     val id: Int,
     val title: String,
     val description: String,
-    val imageRes: Int,   // optional
+    val imageRes: Int? = null,   // optional
     val imageUrl: String? = null // untuk gambar dari API
 )
