@@ -94,7 +94,9 @@ fun BolofindScreen(
 
                     FeatureCard(
                         feature = featureData,
-                        navController = navController,
+                        onCardClick = {
+                            navController.navigate("detail/${featureData.id}")
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1.3f)

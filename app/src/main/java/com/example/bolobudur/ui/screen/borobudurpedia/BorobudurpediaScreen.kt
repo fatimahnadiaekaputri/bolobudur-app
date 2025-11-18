@@ -26,7 +26,6 @@ import androidx.navigation.NavController
 import com.example.bolobudur.R
 import com.example.bolobudur.ui.components.BottomNavBar
 import com.example.bolobudur.ui.components.FeatureCard
-import com.example.bolobudur.ui.components.SearchBar
 import com.example.bolobudur.ui.model.FeatureData
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -146,7 +145,6 @@ fun BorobudurpediaScreen(navController: NavController) {
                     filtered.forEach { feature ->
                         FeatureCard(
                             feature = feature,
-                            navController = navController,
                             onCardClick = {
                                 val encodedTitle = URLEncoder.encode(feature.title, StandardCharsets.UTF_8.toString())
                                 navController.navigate("category/$encodedTitle")

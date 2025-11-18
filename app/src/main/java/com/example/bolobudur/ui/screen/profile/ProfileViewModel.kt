@@ -1,5 +1,8 @@
 package com.example.bolobudur.ui.screen.profile
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.data.model.AuthResponse
@@ -11,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,6 +36,14 @@ class ProfileViewModel @Inject constructor(
     private val _isSuccess = MutableStateFlow(false)
     val isSuccess: StateFlow<Boolean> = _isSuccess
 
+    var oldPassword = mutableStateOf("")
+    var newPassword = mutableStateOf("")
+    var confirmPassword = mutableStateOf("")
+
+    var isLoading by mutableStateOf(false)
+    var successMessage by mutableStateOf<String?>(null)
+    var errorMessage by mutableStateOf<String?>(null)
+
     init {
         loadProfile()
     }
@@ -49,19 +61,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-//    fun updateProfile(name: String, email: String) {
-//        viewModelScope.launch {
-//            _loading.value = true
-//            try {
-//                repository.updateProfile(name, email)
-//                loadProfile()
-//            } catch (e: Exception) {
-//                _error.value = e.message
-//            } finally {
-//                _loading.value = false
-//            }
-//        }
-//    }
+    fun updateProfile(name: String, email: String, image: File?) {
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            successMessage = null
+
+            val result = authRepository.updateProfile(name, email, image)
+
+            result.onSuccess {
+                successMessage = it
+            }
+
+            result.onFailure {
+                errorMessage = it.message
+            }
+
+            isLoading = false
+        }
+    }
 
     fun logout() {
         viewModelScope.launch {
