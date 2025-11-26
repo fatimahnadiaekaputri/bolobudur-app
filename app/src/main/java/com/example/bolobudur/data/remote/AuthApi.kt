@@ -4,6 +4,8 @@ import com.example.bolobudur.data.model.AuthResponse
 import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
 import com.example.bolobudur.data.model.UserProfile
+import com.example.bolobudur.data.model.ChangePasswordRequest
+import com.example.bolobudur.data.model.BasicResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -39,6 +41,12 @@ interface AuthApi {
 
     @POST("api/auth/logout")
     suspend fun logout(@Header("Authorization") token: String): Response<Unit>
+
+    @PUT("api/auth/change-password")
+    suspend fun changePassword(
+        @Body request: ChangePasswordRequest
+    ): Response<BasicResponse>
+
 
     // 🟢 Validate token endpoint
 

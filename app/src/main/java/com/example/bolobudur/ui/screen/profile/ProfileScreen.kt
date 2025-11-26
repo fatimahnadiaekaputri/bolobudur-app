@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel(),
-    onLogout: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val userProfile by viewModel.userProfile.collectAsState()
@@ -87,7 +86,7 @@ fun ProfileScreen(
                     ProfileMenuItem(
                         icon = Icons.Default.Lock,
                         title = "Change Password", showDivider = false,
-                        onClick = { /* TODO */ }
+                        onClick = {navController.navigate("change_password") }
                     )
                 }
             }

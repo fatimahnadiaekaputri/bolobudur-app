@@ -6,6 +6,7 @@ import com.example.bolobudur.data.local.TokenManager
 import com.example.bolobudur.data.remote.AuthApi
 import com.example.bolobudur.data.remote.CulturalSiteApiService
 import com.example.bolobudur.data.remote.MapApiService
+import com.example.bolobudur.data.remote.ProfileApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -98,6 +99,10 @@ object NetworkModule {
     @Provides @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
+
+    @Provides @Singleton
+    fun provideProfileApi(retrofit: Retrofit): ProfileApi =
+        retrofit.create(ProfileApi::class.java)
 
     @Provides @Singleton
     fun provideCulturalSiteApiService(retrofit: Retrofit): CulturalSiteApiService =

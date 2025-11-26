@@ -27,6 +27,7 @@ import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.ui.screen.borobudurpedia.CategoryScreen
 import com.example.bolobudur.ui.screen.borobudurpedia.CulturalSiteScreen
+import com.example.bolobudur.ui.screen.profile.ChangePasswordScreen
 import com.example.bolobudur.ui.screen.home.HomeViewModel
 import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
 
@@ -74,7 +75,6 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-
         composable(Screen.Borobudurpedia.route) {
             BorobudurpediaScreen(navController = navController)
         }
@@ -82,21 +82,24 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Profile.route) {
             ProfileScreen(
                 navController = navController,
-                onLogout = {
-                    navController.navigate("login") {
-                        popUpTo("home") { inclusive = true }
-                    }
-                }
             )
         }
 
         composable("updateProfile") {
             UpdateProfileScreen(
                 onProfileUpdated = { navController.popBackStack() },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 
+        composable("change_password") {
+            ChangePasswordScreen(
+                onLogout = { navController.navigate("login") { popUpTo("home") { inclusive = true } } },
+                onBack = { navController.popBackStack() },
+                navController = navController
+            )
+        }
 
         composable("detail/{featureId}") { backStackEntry ->
             val featureId = backStackEntry.arguments?.getString("featureId")?.toIntOrNull()

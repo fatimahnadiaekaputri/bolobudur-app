@@ -90,15 +90,18 @@ class AuthViewModel @Inject constructor(
                 _errorMessage.value = null
                 _isSuccess.value = true
             } else {
-                _errorMessage.value = result.exceptionOrNull()?.message
+                _errorMessage.value = "Email atau password salah"
             }
         } catch (e: Exception) {
-            _errorMessage.value = e.message
+            _errorMessage.value = "Terjadi kesalahan saat login"
         } finally {
             _isLoading.value = false
         }
     }
 
+    fun clearError() {
+        _errorMessage.value = null
+    }
 
     fun loadProfile() = viewModelScope.launch {
         _isLoading.value = true

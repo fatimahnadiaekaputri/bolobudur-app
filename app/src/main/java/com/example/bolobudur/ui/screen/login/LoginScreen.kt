@@ -125,6 +125,8 @@ fun LoginScreen(
                         onValueChange = {
                             email = it
                             emailError = null
+                            showError = false
+                            viewModel.clearError()
                                         },
                         label = { Text("Email*") },
                         placeholder = { Text("Masukkan alamat email Anda") },
