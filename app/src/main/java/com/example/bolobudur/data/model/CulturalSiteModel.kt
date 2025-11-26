@@ -44,3 +44,18 @@ data class SiteProperties(
     val description: String,
     val source_type: String? = null
 )
+
+data class CategoryItem(
+    val category_id: Int,
+    val name: String,
+    val description: String
+)
+
+data class SiteItem(
+    val site_id: Int,
+    val name: String,
+    val description: String,
+    val image_url: String
+)
+
+

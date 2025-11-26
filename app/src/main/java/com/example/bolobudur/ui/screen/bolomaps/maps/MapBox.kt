@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.ui.components.Loader
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.mapbox.geojson.Feature
@@ -31,6 +32,7 @@ import com.example.bolobudur.R
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
 import com.mapbox.maps.toCameraOptions
+import kotlinx.coroutines.launch
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
@@ -68,6 +70,33 @@ fun MapBox(
             zoom(17.0)
             pitch(0.0)
             bearing(0.0)
+        }
+
+
+    }
+
+    LaunchedEffect(Unit) {
+        var isRerouting = false
+        navigationViewModel.setOnOffRouteListener {
+            if (!isRerouting) {
+                isRerouting = true
+                val current = navigationViewModel.currentPosition.value
+                val destination = viewModel.selectedDestination.value
+                if (current != null && destination != null) {
+                    viewModel.getShortestPath(
+                        current.latitude(),
+                        current.longitude(),
+                        destination.lat,
+                        destination.lon,
+                        destination.label,
+                        navigationViewModel
+                    )
+                }
+                navigationViewModel.viewModelScope.launch {
+                    kotlinx.coroutines.delay(3000)
+                    isRerouting = false
+                }
+            }
         }
     }
 

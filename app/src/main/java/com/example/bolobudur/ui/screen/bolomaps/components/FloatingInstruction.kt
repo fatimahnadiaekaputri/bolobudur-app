@@ -20,8 +20,6 @@ import compose.icons.feathericons.ArrowUp
 
 @Composable
 fun FloatingInstructionBox(
-    instruction: String,
-    distanceText: String,
     bearing: Float,
     navigationViewModel: NavigationViewModel = hiltViewModel()
 ) {
@@ -62,7 +60,7 @@ fun FloatingInstructionBox(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "$instruction ke arah $directionText sejauh $distanceText",
+                    text = "Ke arah $directionText",
 //                    text = "$instruction ke arah $directionText",
                     color = Color.White,
                     fontSize = 15.sp,

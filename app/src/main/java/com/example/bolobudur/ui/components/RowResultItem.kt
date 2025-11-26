@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,7 +29,8 @@ fun RowResultItem(
             .fillMaxWidth()
             .background(Color.White)
             .padding(vertical = 2.dp),
-        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black, containerColor = Color.White)
+        colors = ButtonDefaults.textButtonColors(contentColor = Color.Black, containerColor = Color.White),
+        shape = RectangleShape
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -57,7 +57,33 @@ class HomeViewModel @Inject constructor(
 
     fun onSearchQueryChange(newValue: String) {
         _uiState.update { it.copy(searchQuery = newValue) }
+
+        if (newValue.isBlank()) {
+            _uiState.update { it.copy(searchResult = null) }
+            return
+        }
+
+        // Live Search
+        viewModelScope.launch {
+            try {
+                val response = repository.searchPoi(newValue)
+                _uiState.update { it.copy(searchResult = response) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
+
+    fun clearSearch() {
+        _uiState.update {
+            it.copy(
+                searchQuery = "",
+                searchResult = null,
+                isLoading = false
+            )
+        }
+    }
+
 
     fun onSearchSubmit() {
         val keyword = uiState.value.searchQuery

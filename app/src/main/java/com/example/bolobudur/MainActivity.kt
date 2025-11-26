@@ -14,6 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.bolobudur.ui.navigation.NavGraph
+import com.example.bolobudur.ui.screen.connection.ConnectivityGate
 import com.example.bolobudur.ui.theme.BolobudurTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,11 +26,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         checkAndRequestBluetoothPermissions()
+        requestNotificationPermission()
         setContent {
             BolobudurTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    val navController = rememberNavController()
-                    NavGraph(navController = navController)
+                    ConnectivityGate {
+                        val navController = rememberNavController()
+                        NavGraph(navController = navController)
+                    }
                 }
             }
         }
@@ -57,4 +61,22 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, notGranted.toTypedArray(), 100)
         }
     }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    101
+                )
+            }
+        }
+    }
+
 }

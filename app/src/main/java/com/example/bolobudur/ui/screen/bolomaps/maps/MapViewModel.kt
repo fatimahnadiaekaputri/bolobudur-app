@@ -3,9 +3,12 @@ package com.example.bolobudur.ui.screen.bolomaps.maps
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.data.model.FloorData
+import com.example.bolobudur.data.model.NearbyResponse
 import com.example.bolobudur.data.model.PoiFeature
 import com.example.bolobudur.data.model.ShortestPathResponse
+import com.example.bolobudur.data.repository.CulturalSiteRepository
 import com.example.bolobudur.data.repository.MapRepository
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.Point
@@ -21,7 +24,8 @@ data class MapUiState(
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-    private val repository: MapRepository
+    private val repository: MapRepository,
+    private val siteRepository: CulturalSiteRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MapUiState())
@@ -71,6 +75,8 @@ class MapViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    private val _nearbyPoi = MutableStateFlow<NearbyResponse?>(null)
+    val nearbyPoi: StateFlow<NearbyResponse?> = _nearbyPoi
 
     fun loadMapData() {
         viewModelScope.launch {
@@ -99,7 +105,8 @@ class MapViewModel @Inject constructor(
         fromLon: Double,
         toLat: Double,
         toLon: Double,
-        destinationLabel: String? = null
+        destinationLabel: String? = null,
+        navigationViewModel: NavigationViewModel? = null
     ) {
         viewModelScope.launch {
             _isPathLoading.value = true
@@ -143,6 +150,8 @@ class MapViewModel @Inject constructor(
                         lon = toLon
                     )
                 }
+
+                navigationViewModel?.startNavigation(response)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -226,6 +235,21 @@ class MapViewModel @Inject constructor(
 
     fun clearSearchResults() {
         _searchResults.value = emptyList()
+    }
+
+    fun checkNearby(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                val response = siteRepository.getNearby(lat, lon)
+                if (response.detectedAreas.isNotEmpty()) {
+                    _nearbyPoi.value = response
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun clearNearbyFlag() {
+        _nearbyPoi.value = null
     }
 
 

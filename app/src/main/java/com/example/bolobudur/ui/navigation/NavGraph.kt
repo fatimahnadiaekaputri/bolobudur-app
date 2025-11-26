@@ -18,12 +18,16 @@ import com.example.bolobudur.ui.screen.profile.ProfileScreen
 import com.example.bolobudur.ui.screen.splash.SplashScreen
 import com.example.bolobudur.ui.screen.splash.SplashViewModel
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.bolobudur.ui.screen.bolofind.BolofindScreen
 import com.example.bolobudur.ui.screen.bolomaps.BolomapsScreen
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.ui.screen.borobudurpedia.CategoryScreen
 import com.example.bolobudur.ui.screen.borobudurpedia.CulturalSiteScreen
+import com.example.bolobudur.ui.screen.home.HomeViewModel
 import com.example.bolobudur.ui.screen.profile.UpdateProfileScreen
 
 
@@ -58,8 +62,18 @@ fun NavGraph(navController: NavHostController) {
 
         // Home Screen
         composable(Screen.Home.route) {
-            HomeScreen(navController = navController)
+            val viewModel: HomeViewModel = hiltViewModel()
+
+            LaunchedEffect(Unit) {
+                viewModel.clearSearch()
+            }
+
+            HomeScreen(
+                navController = navController,
+                homeViewModel = viewModel
+            )
         }
+
 
         composable(Screen.Borobudurpedia.route) {
             BorobudurpediaScreen(navController = navController)
@@ -118,22 +132,39 @@ fun NavGraph(navController: NavHostController) {
             )
         }
 
-        composable("cultural-site") {
-            CulturalSiteScreen(navController = navController)
+//        composable(
+//            route = "category/{categoryName}"
+//        ) { backStackEntry ->
+//            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "Kategori"
+//            CategoryScreen(
+//                navController = navController,
+//                categoryName = categoryName
+//            )
+//        }
+
+        composable("bolofind") {
+            BolofindScreen(navController = navController)
         }
 
         composable(
-            route = "category/{categoryName}"
+            route = "culturalSite/{siteId}",
+            arguments = listOf(navArgument("siteId") { type = NavType.IntType })
         ) { backStackEntry ->
-            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "Kategori"
-            CategoryScreen(
+            CulturalSiteScreen(
                 navController = navController,
-                categoryName = categoryName
+                siteId = backStackEntry.arguments?.getInt("siteId") ?: 0
             )
         }
 
+        composable("category/{categoryId}") { backStack ->
+            val id = backStack.arguments?.getString("categoryId")!!.toInt()
+            CategoryScreen(navController, id)
+        }
 
-
+        composable("bolomaps") {
+            BolomapsScreen(navController = navController)
+        }
 
     }
 }
+

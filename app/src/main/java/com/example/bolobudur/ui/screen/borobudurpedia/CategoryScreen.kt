@@ -5,100 +5,138 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bolobudur.R
+import com.example.bolobudur.ui.components.FeatureCard
+import com.example.bolobudur.ui.components.TopBar
+import com.example.bolobudur.ui.model.FeatureData
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun CategoryScreen(navController: NavController, categoryName: String) {
+fun CategoryScreen(
+    navController: NavController,
+    categoryId: Int,
+    viewModel: BorobudurpediaViewModel = hiltViewModel()
+) {
 
-    // Daftar kategori (kamu bisa ubah nanti kalau ada data dinamis)
-    val categories = listOf(
-        Pair("Pondasi", R.drawable.bolomaps_feature),
-        Pair("Kaki, Tubuh, Atap Candi", R.drawable.bolomaps_feature),
-        Pair("Selasar, Tangga, Pagar Langkan", R.drawable.bolomaps_feature),
-        Pair("Rupadhatu, Arupadhatu, Kamadhatu, Bhuvarloka, Bhurloka", R.drawable.bolomaps_feature),
-    )
+    val headerHeight = remember { mutableIntStateOf(0) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        // 🏷️ Header Title
-        Text(
-            text = categoryName,
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2A2A2A)
-            ),
+    val isLoading by viewModel.isLoadingCategoriesAndSites.collectAsState()
+    val category by viewModel.category.collectAsState()
+    val sites by viewModel.sites.collectAsState()
+
+    LaunchedEffect(categoryId) {
+        viewModel.loadCategoryAndSites(categoryId)
+    }
+
+    // 🔹 STATE LOADING
+    if (isLoading) {
+        Box(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(top = 16.dp, bottom = 24.dp)
-        )
-
-        // 📚 Grid kategori
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxSize()
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
         ) {
-            items(categories) { (name, imageRes) ->
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            androidx.compose.material3.CircularProgressIndicator()
+        }
+        return
+    }
+
+    // 🔹 JIKA SUDAH TIDAK LOADING → TAMPILKAN KONTEN
+    Column(modifier = Modifier.fillMaxSize()) {
+
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            // 🔹 BAGIAN HEADER
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .onGloballyPositioned { layoutCoordinates ->
+                        headerHeight.value = layoutCoordinates.size.height
+                    }
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.bolomaps_feature),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(16.dp)),
-                    onClick = {
-                        // nanti bisa navigate ke detail kategori di sini
-                        // contoh: navController.navigate("category_detail/${name}")
-                    }
+                        .matchParentSize()
+                )
+
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.6f))
+                )
+
+                TopBar(
+                    title = category?.name ?: "",
+                    navController = navController,
+                    isTransparent = true
+                )
+
+                Text(
+                    text = category?.description ?: "",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.White),
+                    modifier = Modifier
+                        .padding(top = 90.dp, start = 12.dp, end = 16.dp, bottom = 20.dp)
+                        .align(Alignment.BottomStart)
+                )
+            }
+
+            // 🔹 KONTEN DI BAWAH HEADER
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = with(LocalDensity.current) { headerHeight.value.toDp() + 12.dp })
+                    .background(Color.White)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFF9F9F9))
-                    ) {
-                        Image(
-                            painter = painterResource(id = imageRes),
-                            contentDescription = name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .height(120.dp)
-                                .fillMaxWidth()
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF333333)
+                    items(sites) { site ->
+                        FeatureCard(
+                            feature = FeatureData(
+                                id = site.site_id,
+                                title = site.name,
+                                description = site.description,
+                                imageUrl = site.image_url
                             ),
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp),
+                            onCardClick = {
+                                navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                    set("title", site.name)
+                                    set("description", site.description)
+                                    set("imageUrl", site.image_url)
+                                }
+                                navController.navigate("culturalSite/${site.site_id}")
+                            }
                         )
                     }
                 }
@@ -106,3 +144,6 @@ fun CategoryScreen(navController: NavController, categoryName: String) {
         }
     }
 }
+
+
+

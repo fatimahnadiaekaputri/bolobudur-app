@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.bolobudur.ui.model.FeatureData
@@ -61,7 +62,7 @@ fun FeatureCard(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(16.dp)
+                    .padding(start = 16.dp, end = 60.dp, bottom = 16.dp)
             ) {
                 Text(
                     text = feature.title,
@@ -69,7 +70,9 @@ fun FeatureCard(
                 )
                 Text(
                     text = feature.description,
-                    style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.8f))
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.White.copy(alpha = 0.8f)),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 

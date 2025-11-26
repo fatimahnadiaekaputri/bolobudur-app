@@ -14,9 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun QuickButton(text: String) {
+fun QuickButton(
+    text: String,
+    lat: Double,
+    lon: Double,
+    onClick: (Double, Double) -> Unit
+) {
     Button(
-        onClick = {/* TODO */},
+        onClick = { onClick(lat, lon) },
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFFFDFDFD),
@@ -30,7 +35,6 @@ fun QuickButton(text: String) {
                 ambientColor = Color.Black.copy(alpha = 0.12f),
                 spotColor = Color.Black.copy(alpha = 0.18f)
             )
-
     ) {
         Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Normal)
     }

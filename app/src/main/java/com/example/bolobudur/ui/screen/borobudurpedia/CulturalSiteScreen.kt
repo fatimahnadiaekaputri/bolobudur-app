@@ -31,18 +31,36 @@ import compose.icons.feathericons.ChevronRight
 @Composable
 fun CulturalSiteScreen(
     navController: NavController,
-    viewModel: BorobudurpediaViewModel = hiltViewModel()
+    viewModel: BorobudurpediaViewModel = hiltViewModel(),
+    siteId: Int? = null
 ) {
     val site by viewModel.site.collectAsState()
     val currentPage by viewModel.currentPage.collectAsState()
     val context = LocalContext.current
 
+    val savedStateHandle = navController.previousBackStackEntry?.savedStateHandle
+    val initialDescription = savedStateHandle?.get<String>("description") ?: "Tidak ada deskripsi."
+
     val description by remember(currentPage) {
-        derivedStateOf { viewModel.getCurrentDescription() }
+        derivedStateOf {
+            viewModel.getCurrentDescription()
+        }
     }
 
-    LaunchedEffect(true) {
-        viewModel.loadDummyData()
+    val title = savedStateHandle?.get<String>("title")
+    val imageUrl = savedStateHandle?.get<String>("imageUrl")
+
+//    LaunchedEffect(true) {
+//        viewModel.loadDummyData()
+//    }
+
+    LaunchedEffect(siteId) {
+        // Load data yang dikirim dari Bolofind
+        viewModel.loadSite(
+            name = title ?: "Tanpa Judul",
+            description = initialDescription,
+            imageUrl = imageUrl
+        )
     }
 
     site?.let { siteData ->

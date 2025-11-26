@@ -1,7 +1,5 @@
 package com.example.bolobudur.ui.screen.borobudurpedia
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.CardDefaults.cardElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,21 +21,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.bolobudur.R
 import com.example.bolobudur.ui.components.BottomNavBar
 import com.example.bolobudur.ui.components.FeatureCard
+import com.example.bolobudur.ui.components.Loader
 import com.example.bolobudur.ui.components.SearchBar
 import com.example.bolobudur.ui.model.FeatureData
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
-fun BorobudurpediaScreen(navController: NavController) {
+fun BorobudurpediaScreen(navController: NavController, viewModel: BorobudurpediaViewModel = hiltViewModel()) {
 
     var searchQuery by remember { mutableStateOf("") }
+
+    val isLoading by viewModel.isLoadingCategories.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+
+    var showOverlay by remember { mutableStateOf(false) }
+    val searchedSites by viewModel.searchedSites.collectAsState()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
@@ -96,10 +100,19 @@ fun BorobudurpediaScreen(navController: NavController) {
                             .padding(horizontal = 16.dp, vertical = 16.dp)
                             .zIndex(3f)
                     ) {
-//                        SearchBar(
-//                            value = searchQuery,
-//                            onValueChange = { searchQuery = it }
-//                        )
+                        SearchBar(
+                            value = searchQuery,
+                            onValueChange = {
+                                searchQuery = it
+                                viewModel.updateSearchQuery(it)
+                                showOverlay = it.isNotBlank()
+                            },
+                            onSearchSubmit = {
+                                viewModel.updateSearchQuery(searchQuery)
+                                showOverlay = true
+                            }
+                        )
+
                     }
                 }
             }
@@ -125,43 +138,111 @@ fun BorobudurpediaScreen(navController: NavController) {
 
             // 📚 GRID (pakai FlowRow supaya ikut scroll parent)
             item {
-                val features = listOf(
-                    FeatureData(1, "Struktur Utama Candi", "", R.drawable.bolomaps_feature),
-                    FeatureData(2, "Elemen Arsitektural", "", R.drawable.bolomaps_feature),
-                    FeatureData(3, "Relief & Ornamen", "", R.drawable.bolomaps_feature),
-                    FeatureData(4, "Arca & Simbol", "", R.drawable.bolomaps_feature)
-                )
+//                val features = listOf(
+//                    FeatureData(1, "Struktur Utama Candi", "", R.drawable.bolomaps_feature),
+//                    FeatureData(2, "Elemen Arsitektural", "", R.drawable.bolomaps_feature),
+//                    FeatureData(3, "Relief & Ornamen", "", R.drawable.bolomaps_feature),
+//                    FeatureData(4, "Arca & Simbol", "", R.drawable.bolomaps_feature)
+//                )
+//
+//                val filtered = features.filter {
+//                    it.title.contains(searchQuery, ignoreCase = true)
+//                }
 
-                val filtered = features.filter {
-                    it.title.contains(searchQuery, ignoreCase = true)
-                }
 
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    filtered.forEach { feature ->
-                        FeatureCard(
-                            feature = feature,
-                            navController = navController,
-                            onCardClick = {
-                                val encodedTitle = URLEncoder.encode(feature.title, StandardCharsets.UTF_8.toString())
-                                navController.navigate("category/$encodedTitle")
-
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth(0.47f)
-                                .height(180.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                        )
+                if (isLoading) {
+                    Loader()
+                } else {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        categories.forEach { feature ->
+                            FeatureCard(
+                                feature = FeatureData(
+                                    id = feature.category_id,
+                                    title = feature.name,
+                                    description = "",
+                                    imageRes = R.drawable.bolomaps_feature
+                                ),
+                                onCardClick = {
+                                    navController.navigate("category/${feature.category_id}")
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth(0.47f)
+                                    .height(180.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                            )
+                        }
                     }
                 }
             }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+
+        if (showOverlay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 230.dp) // sesuaikan tinggi header image
+            ) {
+                androidx.compose.material3.Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = cardElevation(6.dp)
+                ) {
+                    when {
+                        isLoading -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .background(Color.White),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Loader()
+                            }
+                        }
+
+                        searchedSites.isEmpty() -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .background(Color.White),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Tidak ditemukan")
+                            }
+                        }
+
+                        else -> {
+                            SearchSiteResultSheet(
+                                sites = searchedSites,
+                                onSiteClick = { site ->
+                                    showOverlay = false
+
+                                    // Kirim data
+                                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                        set("title", site.name)
+                                        set("description", site.description)
+                                        set("imageUrl", site.image_url)
+                                    }
+
+                                    navController.navigate("culturalSite/${site.site_id}")
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

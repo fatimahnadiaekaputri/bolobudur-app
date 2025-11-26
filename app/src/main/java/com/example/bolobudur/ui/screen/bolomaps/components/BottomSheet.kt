@@ -22,11 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.bolobudur.ui.components.SearchBar
+import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
 import com.example.bolobudur.ui.screen.bolomaps.maps.MapViewModel
 import com.example.bolobudur.utils.toScreenHeight
 
 @Composable
-fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
+fun BottomSheet(viewModel: MapViewModel = hiltViewModel(), navigationViewModel: NavigationViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val floorData by viewModel.floorData.collectAsState()
     val verticalScrollState = rememberScrollState()
@@ -36,6 +37,8 @@ fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
 
     val searchResults by viewModel.searchResults.collectAsState()
     val isSearching = uiState.searchQuery.isNotBlank()
+
+    val currentPos by navigationViewModel.currentPosition.collectAsState()
 
     Column(
         modifier = Modifier
@@ -106,11 +109,95 @@ fun BottomSheet(viewModel: MapViewModel = hiltViewModel()) {
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                QuickButton("Area Stupa")
-                QuickButton("Pintu Masuk")
-                QuickButton("Pintu Keluar")
-                QuickButton("Pintu Utara")
-                QuickButton("Pintu Selatan")
+                QuickButton(
+                    text = "Area Stupa Timur",
+                    lat = -7.607955,
+                    lon = 110.204068,
+                    onClick = { toLat, toLon ->
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
+
+                        viewModel.getShortestPath(
+                            fromLat,
+                            fromLon,
+                            toLat,
+                            toLon,
+                            "Pintu Utara Area Stupa 1"
+                        )
+                    }
+                )
+
+                QuickButton(
+                    text = "Pintu Masuk",
+                    lat = -7.607955,
+                    lon = 110.204235,
+                    onClick = { toLat, toLon ->
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
+
+                        viewModel.getShortestPath(
+                            fromLat,
+                            fromLon,
+                            toLat,
+                            toLon,
+                            "Pintu Timur Lantai 1"
+                        )
+                    }
+                )
+
+                QuickButton(
+                    text = "Pintu Keluar",
+                    lat = -7.607957,
+                    lon = 110.203399,
+                    onClick = { toLat, toLon ->
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
+
+                        viewModel.getShortestPath(
+                            fromLat,
+                            fromLon,
+                            toLat,
+                            toLon,
+                            "Pintu Barat Lantai 1"
+                        )
+                    }
+                )
+
+                QuickButton(
+                    text = "Pintu Utara",
+                    lat = -7.607545,
+                    lon = 110.20382,
+                    onClick = { toLat, toLon ->
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
+
+                        viewModel.getShortestPath(
+                            fromLat,
+                            fromLon,
+                            toLat,
+                            toLon,
+                            "Pintu Utara Lantai 1"
+                        )
+                    }
+                )
+
+                QuickButton(
+                    text = "Pintu Selatan",
+                    lat = -7.608376,
+                    lon = 110.203824,
+                    onClick = { toLat, toLon ->
+                        val fromLat = currentPos?.latitude() ?: 0.0
+                        val fromLon = currentPos?.longitude() ?: 0.0
+
+                        viewModel.getShortestPath(
+                            fromLat,
+                            fromLon,
+                            toLat,
+                            toLon,
+                            "Pintu Selatan Lantai 1"
+                        )
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))

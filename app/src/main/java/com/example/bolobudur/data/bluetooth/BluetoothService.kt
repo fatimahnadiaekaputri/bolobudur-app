@@ -9,13 +9,19 @@ import android.app.Service
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.example.bolobudur.MainActivity
 import com.example.bolobudur.data.model.BtState
+import com.example.bolobudur.data.model.DummyPoint
 import com.example.bolobudur.data.repository.LocationRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
@@ -47,6 +53,11 @@ class BluetoothService : Service() {
         const val ACTION_DISCONNECT_CONNECT = "action_disconnect_connect"
     }
 
+    private var lastLat = 0.0
+    private var lastLon = 0.0
+    private var lastImu = 0f
+
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -54,9 +65,21 @@ class BluetoothService : Service() {
         registerReceiver(bluetoothDisconnectReceiver, filter)
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+        if (!hasRequiredPermissions()) {
+            Log.e("BluetoothService", "Missing required runtime permissions. Stopping service.")
+            // Handle this error appropriately, usually by stopping the service
+            // and prompting the user in the main activity to grant permissions.
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
+        startForeground(NOTIF_ID, buildNotification("Preparing...", isPaused, isConnected))
+
         val address = intent?.getStringExtra(EXTRA_DEVICE_ADDRESS)
         val dummyFlag = intent?.getBooleanExtra(EXTRA_IS_DUMMY, isDummyMode) ?: isDummyMode
 
@@ -77,7 +100,7 @@ class BluetoothService : Service() {
             }
         }
 
-        startForeground(NOTIF_ID, buildNotification("Preparing...", isPaused, isConnected))
+
 
         if (isDummyMode) {
             startDummyStream()
@@ -105,6 +128,23 @@ class BluetoothService : Service() {
         return START_STICKY
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun hasRequiredPermissions(): Boolean {
+        val bluetoothConnect = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val fineLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        // dataSync and connectedDevice types don't strictly require *runtime* permissions
+        // to be active, but location does.
+        return bluetoothConnect && fineLocation
+    }
+
     // ----------------------------- DUMMY MODE ---------------------------------
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
@@ -114,50 +154,50 @@ class BluetoothService : Service() {
         readJob?.cancel()
 
         val dummyPath = listOf(
-//            listOf(110.20340045586158, -7.608002259549181),
-//            listOf(110.20339948672768, -7.607981126273188),
-//            listOf(110.20339948672768, -7.607973441446134),
-//            listOf(110.20339851759377, -7.60796191420377),
-//            listOf(110.20343631384338, -7.607954229375352),
-//            listOf(110.203472, -7.607957),
-//            listOf(110.20352547423175, -7.607960953599985),
-//            listOf(110.20357683836858, -7.607955189979151),
-//            listOf(110.20363110990905, -7.60794366273727)
-//            listOf(110.365962390237, -7.7358614501326)
-            listOf(110.36599842764792, -7.7358836109075355),
-            listOf(110.36598151944116, -7.735917119558167),
-            listOf(110.36596179320082, -7.73594643962538),
-            listOf(110.36594629401162, -7.735971571110213),
-            listOf(110.36592656777117, -7.735998098787448),
-            listOf(110.36591247759964, -7.736017645495409),
-            listOf(110.36589275135913, -7.736042776974571),
-            listOf(110.36587443413629, -7.736067908453606),
-            listOf(110.36585188986203, -7.736100020896075),
-            listOf(110.36583216362163, -7.736126548565139),
-            listOf(110.36581102836357, -7.736148887652547),
-            listOf(110.36578989310698, -7.736175415318584),
-            listOf(110.36576593981516, -7.736207527752839),
-            listOf(110.3657476225909, -7.736238243993),
-            listOf(110.36572789635045, -7.736252205919229),
-            listOf(110.3657476225909, -7.7362731488069585),
-            listOf(110.36577721195158, -7.73630107265808),
-            listOf(110.3658011652434, -7.736322015543365),
-            listOf(110.36580828329193, -7.736324712518908),
-            listOf(110.36582421883804, -7.7363377164614775),
-            listOf(110.36584202915299, -7.736350720403522),
-            listOf(110.36585796469922, -7.736356293521212),
-            listOf(110.36587858717115, -7.736368368609519),
-            listOf(110.365937561531, -7.73640694308503)
+            DummyPoint(110.20429209608466, -7.607945260356175, 0f),
+            DummyPoint(110.20423611956676, -7.607955464071338, 0f),
+            DummyPoint(110.20423611956676, -7.60800220482227, 0f),
+            DummyPoint(110.20423464594575, -7.608040181678348, 0f),
+            DummyPoint(110.20423759318624, -7.6080620914020045, 0f),
+            DummyPoint(110.2042125416367, -7.60805917010552, 0f),
+            DummyPoint(110.20421401525772, -7.608082540475934, 0f),
+            DummyPoint(110.20421401525772, -7.608116135381991, 0f),
+            DummyPoint(110.20420959439616, -7.608152651580454, 0f),
+            DummyPoint(110.20420959439616, -7.60819501036697, 0f),
+            DummyPoint(110.2041845428451, -7.6082037742528, 0f),
+            DummyPoint(110.20418896370654, -7.608238829796548, 0f),
+            DummyPoint(110.20418643053603, -7.608269253445556, 0f),
+            DummyPoint(110.20418643053603, -7.608302061029576, 0f),
+            DummyPoint(110.20418448353695, -7.60832232453636, 0f),
+            DummyPoint(110.2041435965686, -7.608323289465488, 0f),
+            DummyPoint(110.20410660359641, -7.60832521932376, 0f),
+            DummyPoint(110.2040851866127, -7.60832521932376, 0f),
+            DummyPoint(110.20408323961573, -7.6083493425448125, 0f),
+            DummyPoint(110.2040160681671, -7.608350307472904, 0f),
+            DummyPoint(110.20396057870875, -7.608354167188267, 0f),
+            DummyPoint(110.20392261223805, -7.60835223733109, 0f),
+            DummyPoint(110.20392066523897, -7.608377325479594, 0f),
+            DummyPoint(110.20389924825525, -7.60837443069245, 0f),
+            DummyPoint(110.20387491077406, -7.608375395621536, 0f),
+            DummyPoint(110.20385154679332, -7.608375395621536, 0f),
+            DummyPoint(110.20383791780387, -7.608377325479594, 0f),
+            DummyPoint(110.20383278753809, -7.608376308459341, 0f)
         )
+
+
+
+
 
         readJob = serviceScope.launch {
             while (isActive && isConnected) {
-                for (coord in dummyPath) {
+                for (point in dummyPath) {
                     if (!isActive || isPaused) break
-                    val lon = coord[0]
-                    val lat = coord[1]
-                    val imu = (0).toFloat()
-                    locationRepository.updateFromBluetooth(lat, lon, imu)
+
+                    lastLat = point.lat
+                    lastLon = point.lon
+                    lastImu = point.imu
+
+                    locationRepository.updateFromBluetooth(point.lat, point.lon, point.imu)
                     delay(2000L)
                 }
             }
@@ -167,6 +207,7 @@ class BluetoothService : Service() {
         pushStatusToRepository()
         Log.d("BluetoothService", "Dummy GPS started")
     }
+
 
     // ---------------------------- BLUETOOTH MODE ------------------------------
 
@@ -209,7 +250,7 @@ class BluetoothService : Service() {
         }
     }
 
-
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun startReadingLoop() {
         readJob?.cancel()
         readJob = serviceScope.launch {
@@ -220,7 +261,12 @@ class BluetoothService : Service() {
                         val lat = j.optDouble("latitude", j.optDouble("lat", 0.0))
                         val lon = j.optDouble("longitude", j.optDouble("lon", 0.0))
                         val imu = j.optDouble("imu", j.optDouble("yaw", 0.0)).toFloat()
+
+                        lastLat = lat
+                        lastLon = lon
+                        lastImu = imu
                         locationRepository.updateFromBluetooth(lat, lon, imu)
+                        updateNotification()
                     } catch (e: Exception) {
                         Log.e("BluetoothService", "Parse error: $raw", e)
                     }
@@ -290,18 +336,35 @@ class BluetoothService : Service() {
 
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun updateNotification() {
-        val msg = when {
+        val baseMsg = when {
             isDummyMode && isConnected -> "Dummy GPS running..."
             isDummyMode && !isConnected -> "Dummy GPS stopped"
             !isConnected -> "Disconnected"
             isPaused -> "Paused"
             else -> "Connected: ${currentDevice?.name ?: "Unknown"}"
         }
-        val notif = buildNotification(msg, isPaused, isConnected)
-        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        nm.notify(NOTIF_ID, notif)
 
-        Log.d("BluetoothService", "Notification updated: $msg")
+        val gpsMsg = if (isConnected) {
+            "Lat: %.6f\nLon: %.6f\nIMU: %.2f°".format(lastLat, lastLon, lastImu)
+        } else ""
+
+        val finalMsg = baseMsg + "\n" + gpsMsg
+
+        val notif = NotificationCompat.Builder(this, NOTIF_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setContentTitle("GPS Status")
+            .setContentText(finalMsg)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(finalMsg))
+            .build()
+
+        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        // 🔥 WAJIB Android 14 — nm.notify() harus di Main Thread
+        Handler(Looper.getMainLooper()).post {
+            nm.notify(NOTIF_ID, notif)
+        }
+
+
+//        Log.d("BluetoothService", "Notification updated: $msg")
     }
 
     private fun createNotificationChannel() {

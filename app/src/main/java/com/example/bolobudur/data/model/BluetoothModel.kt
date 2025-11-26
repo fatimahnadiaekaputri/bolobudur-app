@@ -14,3 +14,9 @@ data class BtState(
     val deviceName: String? = null,
     val isScanning: Boolean = false
 )
+
+data class DummyPoint(
+    val lon: Double,
+    val lat: Double,
+    val imu: Float
+)

@@ -6,16 +6,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.bolobudur.ui.components.DefaultPopup
 import com.example.bolobudur.ui.components.TopBar
 import com.example.bolobudur.ui.components.FeatureCard
 import com.example.bolobudur.ui.model.FeatureData
 import com.example.bolobudur.ui.screen.bolomaps.NavigationViewModel
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Search
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +31,10 @@ fun BolofindScreen(
     val features by viewModel.features.collectAsState()
     val zoneName by viewModel.zoneName.collectAsState()
     val currentPos by navigationViewModel.currentPosition.collectAsState()
+
+    var showUnknownAreaDialog by remember { mutableStateOf(false) }
+
+
 
     LaunchedEffect(currentPos) {
         currentPos?.let {
@@ -66,7 +74,11 @@ fun BolofindScreen(
                 )
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
             // --- Nearby items ---
             Text(
@@ -82,7 +94,7 @@ fun BolofindScreen(
             ) {
                 items(features) { feature ->
                     val featureData = FeatureData(
-                        id = feature.id, // ✅ pakai feature.id, bukan dari properties
+                        id = feature.id,
                         title = feature.properties.label,
                         description = feature.properties.culturalSite.description
                             ?.split(" ")
@@ -94,14 +106,42 @@ fun BolofindScreen(
 
                     FeatureCard(
                         feature = featureData,
-                        navController = navController,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1.3f)
+                            .aspectRatio(1.3f),
+                        onCardClick = {
+                            navController.currentBackStackEntry?.savedStateHandle?.apply {
+                                set("title", feature.properties.culturalSite.name)
+                                set("description", feature.properties.culturalSite.description)
+                                set("imageUrl", feature.properties.culturalSite.imageUrl)
+                            }
+                            navController.navigate("culturalSite/${feature.id}")
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
                 }
+            }
+
+            LaunchedEffect(zoneName) {
+                if (zoneName == "Area tidak dikenal") {
+                    showUnknownAreaDialog = true
+                }
+            }
+
+            if (showUnknownAreaDialog) {
+                DefaultPopup(
+                    visible = true,
+                    onDismiss = {
+                        showUnknownAreaDialog = false
+                    },
+                    title = "Lokasi Tidak Dikenali",
+                    description = "Sepertinya tidak ada cagar budaya di sekitarmu. Coba buka BoloMaps dan cari cagar budaya terdekat!",
+                    icon = FeatherIcons.Search,
+                    onConnect = {
+                        navController.navigate("bolomaps")
+                    }
+                )
             }
         }
     }
