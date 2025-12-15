@@ -10,32 +10,41 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.bolobudur.R
-
 
 @Composable
 fun ProfileHeader(
     name: String,
     email: String,
+    imageUrl: String?,            // ⬅️ TAMBAH INI
     modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val context = LocalContext.current
+
+    val imageModel = imageUrl ?: R.drawable.profil_ryujin
+
+    Image(
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(context)
+                .data(imageModel)
+                .crossfade(true)
+                .build()
+        ),
+        contentDescription = "Foto Profil",
         modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 24.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.profil_ryujin), // ganti dgn foto user
-            contentDescription = "Foto Profil",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.height(12.dp))
+            .size(100.dp)           // fixed size
+            .clip(CircleShape),    // circle
+        contentScale = ContentScale.Crop
+    )
+
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = name,
             style = MaterialTheme.typography.titleMedium

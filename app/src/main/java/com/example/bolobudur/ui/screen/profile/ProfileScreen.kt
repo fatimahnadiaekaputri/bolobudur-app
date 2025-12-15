@@ -66,8 +66,10 @@ fun ProfileScreen(
             // 🔹 Header Profil (nama dan email)
             ProfileHeader(
                 name = userProfile?.name ?: "Guest",
-                email = userProfile?.email ?: "-"
+                email = userProfile?.email ?: "-",
+                imageUrl = userProfile?.image_profile
             )
+
 
             Spacer(modifier = Modifier.height(24.dp))
 

@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bolobudur.data.local.TokenManager
-import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.model.UserProfile
 import com.example.bolobudur.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel

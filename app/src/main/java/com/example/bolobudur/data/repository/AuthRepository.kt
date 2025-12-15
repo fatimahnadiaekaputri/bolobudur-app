@@ -6,6 +6,7 @@ import com.example.bolobudur.data.model.LoginRequest
 import com.example.bolobudur.data.model.RegisterRequest
 import com.example.bolobudur.data.model.UserProfile
 import com.example.bolobudur.data.model.BasicResponse
+import com.example.bolobudur.data.model.UpdateProfileRequest
 import com.example.bolobudur.data.remote.AuthApi
 import com.example.bolobudur.data.remote.ProfileApi
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +22,6 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val api: AuthApi,
-    private val profileApi: ProfileApi,
     private val tokenManager: TokenManager
 ) {
 
@@ -56,26 +56,54 @@ class AuthRepository @Inject constructor(
 
     suspend fun getProfile(): UserProfile? {
         val token = tokenManager.getToken() ?: return null
-        return api.getProfile("Bearer $token")
+
+        return try {
+            val response = api.getProfile("Bearer $token")
+            if (response.status) {
+                response.data
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    suspend fun updateProfile(name: String, email: String, imageFile: File?): Result<String> {
+
+
+
+    suspend fun updateProfile(
+        name: String,
+        email: String,
+        imageFile: File?
+    ): Result<Unit> {
+        val token = tokenManager.getToken()
+            ?: return Result.failure(Exception("Unauthorized"))
+
         return try {
-            val nameRB = name.toRequestBody("text/plain".toMediaType())
-            val emailRB = email.toRequestBody("text/plain".toMediaType())
+            // 1️⃣ Upload image (optional)
+            val imageUrl = imageFile?.let {
+                val requestBody = it
+                    .asRequestBody("image/*".toMediaType())
+                val part = MultipartBody.Part
+                    .createFormData("image", it.name, requestBody)
 
-            val imagePart = imageFile?.let {
-                val req = it.asRequestBody("image/*".toMediaType())
-                MultipartBody.Part.createFormData("image", it.name, req)
+                val uploadResponse =
+                    api.uploadProfileImage("Bearer $token", part)
+
+                uploadResponse.url
             }
 
-            val response = profileApi.updateProfile(nameRB, emailRB, imagePart)
+            // 2️⃣ Update profile
+            val request = UpdateProfileRequest(
+                name = name,
+                email = email,
+                image_profile = imageUrl
+            )
 
-            if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!.message)
-            } else {
-                Result.failure(Exception(response.errorBody()?.string()))
-            }
+            api.updateProfile("Bearer $token", request)
+
+            Result.success(Unit)
 
         } catch (e: Exception) {
             Result.failure(e)

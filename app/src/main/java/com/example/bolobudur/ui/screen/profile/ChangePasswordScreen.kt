@@ -146,13 +146,20 @@ fun ChangePasswordScreen(
             // Success snackbar + auto logout
             LaunchedEffect(uiState.successMessage) {
                 uiState.successMessage?.let { msg ->
-                    snackbarHostState.showSnackbar(msg)
+                    scope.launch {
+                        snackbarHostState.showSnackbar(msg)
+                    }
 
-                    // Delay 1 detik → Logout otomatis → Arahkan ke Login
-                    delay(1000)
-                    onLogout()
+                    // Navigate ke login
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }  // Hapus semua backstack
+                    }
+
+                    // Reset successMessage supaya bisa dipakai lagi
+                    viewModel.clearSuccessMessage()
                 }
             }
+
         }
     }
 }

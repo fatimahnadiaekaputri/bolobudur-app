@@ -88,18 +88,23 @@ fun NavGraph(navController: NavHostController) {
         composable("updateProfile") {
             UpdateProfileScreen(
                 onProfileUpdated = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
+//                onBack = { navController.popBackStack() },
                 navController = navController
             )
         }
 
         composable("change_password") {
             ChangePasswordScreen(
-                onLogout = { navController.navigate("login") { popUpTo("home") { inclusive = true } } },
+                onLogout = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 onBack = { navController.popBackStack() },
                 navController = navController
             )
         }
+
 
         composable("detail/{featureId}") { backStackEntry ->
             val featureId = backStackEntry.arguments?.getString("featureId")?.toIntOrNull()

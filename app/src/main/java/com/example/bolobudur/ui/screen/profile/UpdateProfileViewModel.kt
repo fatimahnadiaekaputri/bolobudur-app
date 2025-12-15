@@ -1,5 +1,7 @@
 package com.example.bolobudur.ui.screen.profile
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,15 +18,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UpdateProfileViewModel @Inject constructor(
-    private val profileRepository: AuthRepository
+    private val repository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UpdateProfileUiState())
     val uiState: StateFlow<UpdateProfileUiState> = _uiState
-
-    var isLoading by mutableStateOf(false)
-    var successMessage by mutableStateOf<String?>(null)
-    var errorMessage by mutableStateOf<String?>(null)
 
     init {
         loadCurrentProfile()
@@ -33,44 +31,82 @@ class UpdateProfileViewModel @Inject constructor(
     private fun loadCurrentProfile() {
         viewModelScope.launch {
             try {
-                val profile = profileRepository.getProfile()
+                val profile = repository.getProfile()
                 _uiState.update {
                     it.copy(
-                        name = profile?.name ?: "",
-                        email = profile?.email ?: ""
+                        name = profile?.name.orEmpty(),
+                        email = profile?.email.orEmpty(),
+                        imageProfileUrl = profile?.image_profile
                     )
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                _uiState.update {
+                    it.copy(errorMessage = e.message)
+                }
             }
         }
     }
 
-    fun updateProfile(name: String, email: String, image: File?) {
+    fun uriToFile(context: Context, uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw IllegalArgumentException("Cannot open URI")
+
+        val file = File(
+            context.cacheDir,
+            "profile_${System.currentTimeMillis()}.jpg"
+        )
+
+        file.outputStream().use { output ->
+            inputStream.copyTo(output)
+        }
+
+        return file
+    }
+
+
+    fun updateProfile(
+        context: Context,
+        name: String,
+        email: String,
+        imageUri: Uri?
+    ) {
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
-            successMessage = null
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val result = profileRepository.updateProfile(name, email, image)
+            try {
+                val imageFile = imageUri?.let {
+                    uriToFile(context, it)
+                }
 
-            result.onSuccess {
-                successMessage = it
+                repository.updateProfile(
+                    name = name,
+                    email = email,
+                    imageFile = imageFile
+                )
+
+                _uiState.update {
+                    it.copy(isLoading = false, isSuccess = true)
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message
+                    )
+                }
             }
-
-            result.onFailure {
-                errorMessage = it.message
-            }
-
-            isLoading = false
         }
     }
 }
 
+
 data class UpdateProfileUiState(
     val name: String = "",
     val email: String = "",
+    val imageProfileUrl: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
 )
+

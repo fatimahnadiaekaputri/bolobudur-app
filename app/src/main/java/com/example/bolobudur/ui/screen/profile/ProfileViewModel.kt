@@ -19,7 +19,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val repository: ProfileRepository,
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) : ViewModel() {
@@ -61,25 +60,25 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun updateProfile(name: String, email: String, image: File?) {
-        viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
-            successMessage = null
-
-            val result = authRepository.updateProfile(name, email, image)
-
-            result.onSuccess {
-                successMessage = it
-            }
-
-            result.onFailure {
-                errorMessage = it.message
-            }
-
-            isLoading = false
-        }
-    }
+//    fun updateProfile(name: String, email: String, image: File?) {
+//        viewModelScope.launch {
+//            isLoading = true
+//            errorMessage = null
+//            successMessage = null
+//
+//            val result = authRepository.updateProfile(name, email, image)
+//
+//            result.onSuccess {
+//                successMessage = it
+//            }
+//
+//            result.onFailure {
+//                errorMessage = it.message
+//            }
+//
+//            isLoading = false
+//        }
+//    }
 
     fun logout() {
         viewModelScope.launch {

@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.bolobudur.R
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.bolobudur.ui.components.TopBar
 import java.io.File
 
@@ -32,19 +34,23 @@ import java.io.File
 fun UpdateProfileScreen(
     navController: NavController,
     viewModel: UpdateProfileViewModel = hiltViewModel(),
-    onProfileUpdated: () -> Unit, // callback setelah update berhasil
-    onBack: () -> Unit
+    onProfileUpdated: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    var name by remember { mutableStateOf(uiState.name) }
-    var email by remember { mutableStateOf(uiState.email) }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
+    LaunchedEffect(uiState.name, uiState.email) {
+        name = uiState.name
+        email = uiState.email
+    }
+
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
+        ActivityResultContracts.GetContent()
+    ) { uri ->
         selectedImageUri = uri
     }
 
@@ -55,48 +61,48 @@ fun UpdateProfileScreen(
                 navController = navController
             )
         }
-    ) { innerPadding ->
+    ) { padding ->
+
         Column(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(padding)
                 .padding(16.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 🖼️ Foto Profil
-            Box(
+
+            // 🖼 FOTO PROFILE
+            val imageModel = when {
+                selectedImageUri != null -> selectedImageUri
+                uiState.imageProfileUrl != null -> uiState.imageProfileUrl
+                else -> R.drawable.profil_ryujin
+            }
+
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(context)
+                        .data(imageModel)
+                        .crossfade(true)
+                        .build()
+                ),
+                contentDescription = null,
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
                     .clickable { launcher.launch("image/*") },
-                contentAlignment = Alignment.Center
-            ) {
-                if (selectedImageUri != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(selectedImageUri),
-                        contentDescription = "Selected Profile Picture",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.profil_ryujin),
-                        contentDescription = "Default Profile Picture",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Ganti Foto",
-                color = Color(0xFF346CD3),
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.clickable { launcher.launch("image/*") }
+                contentScale = ContentScale.Crop
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Ganti Foto",
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
+                    launcher.launch("image/*")
+                }
+            )
+
+            Spacer(Modifier.height(32.dp))
 
             OutlinedTextField(
                 value = name,
@@ -105,7 +111,7 @@ fun UpdateProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = email,
@@ -114,23 +120,26 @@ fun UpdateProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(24.dp))
 
             Button(
                 onClick = {
-                    viewModel.updateProfile(name, email, selectedImageUri as File?)
+                    viewModel.updateProfile(
+                        context = context,
+                        name = name,
+                        email = email,
+                        imageUri = selectedImageUri
+                    )
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B6EDC)),
-                shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(48.dp)
             ) {
                 Text("Simpan Perubahan")
             }
 
             if (uiState.isLoading) {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(Modifier.height(16.dp))
                 CircularProgressIndicator()
             }
 
@@ -140,10 +149,11 @@ fun UpdateProfileScreen(
                 }
             }
 
-            if (uiState.errorMessage != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(uiState.errorMessage!!, color = MaterialTheme.colorScheme.error)
+            uiState.errorMessage?.let {
+                Spacer(Modifier.height(12.dp))
+                Text(it, color = MaterialTheme.colorScheme.error)
             }
         }
     }
 }
+

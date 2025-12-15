@@ -26,6 +26,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadFeatures()
         loadUserName()
+        loadUserProfile()
     }
 
     private fun loadFeatures() {
@@ -41,19 +42,30 @@ class HomeViewModel @Inject constructor(
 
     private fun loadUserName() {
         viewModelScope.launch {
-            try {
-                val profile = profileRepository.getProfile()
-                _uiState.update {
-                    it.copy(userName = profile?.name ?: "Guest")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.update {
-                    it.copy(userName = "Guest")
-                }
+            val profile = profileRepository.getProfile()
+
+            _uiState.update {
+                it.copy(
+                    userName = profile?.name ?: "Guest"
+                )
             }
         }
     }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            val profile = profileRepository.getProfile()
+            _uiState.update {
+                it.copy(
+                    userName = profile?.name.orEmpty(),
+                    imageProfileUrl = profile?.image_profile
+                )
+            }
+        }
+    }
+
+
+
 
     fun onSearchQueryChange(newValue: String) {
         _uiState.update { it.copy(searchQuery = newValue) }
@@ -111,6 +123,7 @@ class HomeViewModel @Inject constructor(
 
 data class HomeUiState(
     val userName: String = "Guest",
+    val imageProfileUrl: String? = null,
     val searchQuery: String = "",
     val features: List<FeatureData> = emptyList(),
     val searchResult: SearchResponse? = null,
