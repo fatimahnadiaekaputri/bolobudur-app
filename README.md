@@ -92,7 +92,7 @@ Fitur autentikasi digunakan untuk mengidentifikasi pengguna yang mengakses aplik
 - Mapbox SDK 
 - Dijkstra Algorithm
 
-- 🔌 Connectivity
+### 🔌 Connectivity
 
 - Bluetooth Classic
 
@@ -116,8 +116,10 @@ Fitur autentikasi digunakan untuk mengidentifikasi pengguna yang mengakses aplik
    git clone https://github.com/username/bolobudur-app.git
    ```
 2. **Buka project**
+
    Buka folder project menggunakan Android Studio.
 3. **Tambahkan Mapbox Access Token**
+
    Tambahkan token Mapbox ke dalam file res/values/developer-config.xml
 ```bash
 <?xml version="1.0" encoding="utf-8"?>
@@ -126,6 +128,7 @@ Fitur autentikasi digunakan untuk mengidentifikasi pengguna yang mengakses aplik
 </resources>
 ```
 4. **Jalankan aplikasi**
+
    Jalankan aplikasi pada perangkat Android atau emulator yang mendukung Bluetooth (disarankan Android 12++).
 
 ## ⚠️ Notes
