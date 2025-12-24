@@ -20,12 +20,12 @@ import com.example.bolobudur.R
 fun ProfileHeader(
     name: String,
     email: String,
-    imageUrl: String?,            // ⬅️ TAMBAH INI
+    imageUrl: String?,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
 
-    val imageModel = imageUrl ?: R.drawable.profil_ryujin
+    val imageModel = imageUrl ?: R.drawable.default_profile
 
     Image(
         painter = rememberAsyncImagePainter(

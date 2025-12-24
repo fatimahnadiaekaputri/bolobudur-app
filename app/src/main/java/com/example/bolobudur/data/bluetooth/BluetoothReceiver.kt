@@ -48,10 +48,6 @@ class BluetoothReceiver @Inject constructor(
         hasPermission(Manifest.permission.BLUETOOTH_CONNECT) &&
                 hasPermission(Manifest.permission.BLUETOOTH_SCAN)
 
-    /**
-     * Return bonded (paired) devices as DeviceItem list.
-     * If permission not granted, returns emptyList.
-     */
     @RequiresApi(Build.VERSION_CODES.S)
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     fun getPairedDevices(): List<DeviceItem> {
@@ -60,10 +56,6 @@ class BluetoothReceiver @Inject constructor(
             DeviceItem(name = it.name ?: "Unknown", address = it.address, isDummy = false)
         } ?: emptyList()
     }
-
-    /**
-     *  Return bluetooth devices via discovery scan
-     */
 
     @SuppressLint("MissingPermission")
     @RequiresApi(Build.VERSION_CODES.S)

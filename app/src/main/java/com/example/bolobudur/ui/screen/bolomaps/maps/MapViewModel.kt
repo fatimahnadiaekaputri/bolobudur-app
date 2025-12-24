@@ -84,7 +84,6 @@ class MapViewModel @Inject constructor(
                 _mapLoading.value = true
                 val edgesRes = repository.getEdges()
                 val poiRes = repository.getPoi()
-
                 _edges.value = edgesRes
                 _poi.value = poiRes
 
@@ -99,7 +98,6 @@ class MapViewModel @Inject constructor(
             }
         }
     }
-
     fun getShortestPath(
         fromLat: Double,
         fromLon: Double,
@@ -122,10 +120,8 @@ class MapViewModel @Inject constructor(
                     _errorMessage.value = response.message
                     return@launch
                 }
-
                 _pathInfo.value = response
                 _isPathVisible.value = true
-
                 val features = response.geojson.features.mapNotNull { feature ->
                     val coords = feature.geometry.coordinates
                     if (coords.size >= 2) {

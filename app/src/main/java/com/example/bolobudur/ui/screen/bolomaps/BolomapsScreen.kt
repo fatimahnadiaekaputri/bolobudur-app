@@ -63,7 +63,6 @@ fun BolomapsScreen(
             viewModel.checkNearby(it.latitude(), it.longitude())
         }
     }
-
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         topBar = { TopBar(title = "BoloMaps", navController = navController) },

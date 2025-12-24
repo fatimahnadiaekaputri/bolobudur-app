@@ -75,7 +75,7 @@ fun UpdateProfileScreen(
             val imageModel = when {
                 selectedImageUri != null -> selectedImageUri
                 uiState.imageProfileUrl != null -> uiState.imageProfileUrl
-                else -> R.drawable.profil_ryujin
+                else -> R.drawable.default_profile
             }
 
             Image(

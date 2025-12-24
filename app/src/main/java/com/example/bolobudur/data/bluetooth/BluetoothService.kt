@@ -154,39 +154,8 @@ class BluetoothService : Service() {
         readJob?.cancel()
 
         val dummyPath = listOf(
-            DummyPoint(110.20429209608466, -7.607945260356175, 0f),
-            DummyPoint(110.20423611956676, -7.607955464071338, 0f),
-            DummyPoint(110.20423611956676, -7.60800220482227, 0f),
-            DummyPoint(110.20423464594575, -7.608040181678348, 0f),
-            DummyPoint(110.20423759318624, -7.6080620914020045, 0f),
-            DummyPoint(110.2042125416367, -7.60805917010552, 0f),
-            DummyPoint(110.20421401525772, -7.608082540475934, 0f),
-            DummyPoint(110.20421401525772, -7.608116135381991, 0f),
-            DummyPoint(110.20420959439616, -7.608152651580454, 0f),
-            DummyPoint(110.20420959439616, -7.60819501036697, 0f),
-            DummyPoint(110.2041845428451, -7.6082037742528, 0f),
-            DummyPoint(110.20418896370654, -7.608238829796548, 0f),
-            DummyPoint(110.20418643053603, -7.608269253445556, 0f),
-            DummyPoint(110.20418643053603, -7.608302061029576, 0f),
-            DummyPoint(110.20418448353695, -7.60832232453636, 0f),
-            DummyPoint(110.2041435965686, -7.608323289465488, 0f),
-            DummyPoint(110.20410660359641, -7.60832521932376, 0f),
-            DummyPoint(110.2040851866127, -7.60832521932376, 0f),
-            DummyPoint(110.20408323961573, -7.6083493425448125, 0f),
-            DummyPoint(110.2040160681671, -7.608350307472904, 0f),
-            DummyPoint(110.20396057870875, -7.608354167188267, 0f),
-            DummyPoint(110.20392261223805, -7.60835223733109, 0f),
-            DummyPoint(110.20392066523897, -7.608377325479594, 0f),
-            DummyPoint(110.20389924825525, -7.60837443069245, 0f),
-            DummyPoint(110.20387491077406, -7.608375395621536, 0f),
-            DummyPoint(110.20385154679332, -7.608375395621536, 0f),
-            DummyPoint(110.20383791780387, -7.608377325479594, 0f),
-            DummyPoint(110.20383278753809, -7.608376308459341, 0f)
+            DummyPoint(110.204235, -7.607955, 0f)
         )
-
-
-
-
 
         readJob = serviceScope.launch {
             while (isActive && isConnected) {
@@ -202,13 +171,10 @@ class BluetoothService : Service() {
                 }
             }
         }
-
         updateNotification()
         pushStatusToRepository()
         Log.d("BluetoothService", "Dummy GPS started")
     }
-
-
     // ---------------------------- BLUETOOTH MODE ------------------------------
 
     private fun hasBluetoothConnectPermission(): Boolean {

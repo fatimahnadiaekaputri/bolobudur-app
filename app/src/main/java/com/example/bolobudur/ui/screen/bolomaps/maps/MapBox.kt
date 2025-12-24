@@ -31,8 +31,13 @@ import com.mapbox.maps.plugin.animation.easeTo
 import com.example.bolobudur.R
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.IconAnchor
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.toCameraOptions
 import kotlinx.coroutines.launch
+import com.mapbox.maps.RenderedQueryOptions
+import com.mapbox.maps.QueryRenderedFeaturesCallback
+import com.mapbox.maps.ScreenCoordinate
+
 
 @SuppressLint("LocalContextResourcesRead")
 @Composable
@@ -40,6 +45,8 @@ fun MapBox(
     viewModel: MapViewModel = hiltViewModel(),
     navigationViewModel: NavigationViewModel = hiltViewModel(),
 ) {
+
+
     val context = LocalContext.current
     val borobudur = Point.fromLngLat(110.2038, -7.6079)
 //    val testingTeti = Point.fromLngLat(110.37152147214815, -7.765591698479714)

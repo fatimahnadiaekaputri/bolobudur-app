@@ -29,7 +29,6 @@ fun DeviceSelectionDialog(
         title = { Text("Pilih Perangkat Bluetooth (ESP32_BT)") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-
                 // ---- Paired Section ----
                 Text(
                     "Perangkat Terpasang (Paired)",
@@ -44,15 +43,12 @@ fun DeviceSelectionDialog(
                         }
                     }
                 }
-
                 Spacer(Modifier.height(16.dp))
-
                 // ---- Scanned Section ----
                 Text(
                     "Perangkat Ditemukan (Scan)",
                     style = MaterialTheme.typography.titleMedium
                 )
-
                 if (isScanning) {
                     Box(
                         modifier = Modifier
@@ -63,7 +59,6 @@ fun DeviceSelectionDialog(
                         Loader()
                     }
                 }
-
                 if (!isScanning && scannedDevices.isEmpty()) {
                     Text("Tidak ada perangkat ditemukan")
                 } else {

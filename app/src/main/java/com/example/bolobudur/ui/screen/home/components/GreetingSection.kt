@@ -24,7 +24,7 @@ fun GreetingSection(
 ) {
     val context = LocalContext.current
 
-    val imageModel = imageUrl ?: R.drawable.profil_ryujin
+    val imageModel = imageUrl ?: R.drawable.default_profile
 
     Row(
         modifier = Modifier.fillMaxWidth(),
